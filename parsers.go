@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 )
 
@@ -64,4 +65,10 @@ func numError(err error) error {
 		return ne.Err
 	}
 	return err
+}
+
+// ParseURL uses standard library [url.Parse] function to parse and
+// return the *url.URL value represented by the given string.
+func ParseURL(s string) (any, error) {
+	return url.Parse(s)
 }

@@ -3,6 +3,7 @@ package cli_test
 import (
 	"fmt"
 	"image"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -55,6 +56,21 @@ func ExampleInput_WithParser() {
 	fmt.Printf("%+#v\n", p.Opt("aa"))
 	// Output:
 	// image.Point{X:3, Y:7}
+}
+
+func ExampleParseURL() {
+	cmd := cli.NewCmd("url").
+		Opt(cli.NewOpt("u").WithParser(cli.ParseURL)).
+		Build()
+
+	p := cmd.ParseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
+	fmt.Println(p.Opt("u").(*url.URL))
+
+	_, err := cmd.Parse("-u", "b@d://.com")
+	fmt.Println(err)
+	// Output:
+	// https://pkg.go.dev/github.com/steverusso/cli#ParseURL
+	// parsing option 'u': parse "b@d://.com": first path segment in URL cannot contain colon
 }
 
 func ExampleCommand_HelpUsage() {
