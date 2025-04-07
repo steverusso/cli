@@ -94,19 +94,20 @@ func ExampleCommand_HelpUsage() {
 	//
 	// options:
 	//   --aa  <arg>
-	//     an option
+	//       an option
 	//
 	//   -h, --help
-	//     Show this help message and exit.
+	//       Show this help message and exit.
 }
 
 func ExampleDefaultFullHelp() {
 	c := cli.NewCmd("eg").
 		Help("an example command").
-		Opt(cli.NewOpt("aa").Env("AA").Help("an option")).
+		Opt(cli.NewOpt("aa").Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").
 			Help("another option that is required and has a really long blurb to show how it will be wrapped").
-			Required())
+			Required()).
+		Arg(cli.NewArg("cc").Help("a positional argument"))
 
 	h := cli.DefaultFullHelp(&c)
 	fmt.Println(h)
@@ -114,18 +115,107 @@ func ExampleDefaultFullHelp() {
 	// eg - an example command
 	//
 	// usage:
-	//   eg [options]
+	//   eg [options] [arguments]
 	//
 	// options:
 	//   --aa  <arg>
-	//     an option
+	//       an option
 	//
-	//     [env: AA]
+	//       [default: def]
+	//       [env: AA]
 	//
 	//   --bb  <arg>   (required)
-	//     another option that is required and has a really long blurb to show how it will be
-	//     wrapped
+	//       another option that is required and has a really long blurb to show how it will be
+	//       wrapped
 	//
 	//   -h, --help
-	//     Show this help message and exit.
+	//       Show this help message and exit.
+	//
+	// arguments:
+	//   [cc]
+	//       a positional argument
+}
+
+func ExampleDefaultShortHelp_simple() {
+	c := cli.NewCmd("eg").
+		Help("an example command").
+		Opt(cli.NewOpt("aa").Short('a').Env("AA").Default("def").Help("an option")).
+		Opt(cli.NewOpt("bb").Short('b').Required().Help("another option")).
+		Arg(cli.NewArg("cc").Required().Help("a required positional argument")).
+		Arg(cli.NewArg("dd").Env("PA2").Help("an optional positional argument"))
+
+	h := cli.DefaultShortHelp(&c)
+	fmt.Println(h)
+	// Output:
+	// eg - an example command
+	//
+	// usage:
+	//   eg [options] [arguments]
+	//
+	// options:
+	//   -a, --aa  <arg>   an option (default: def) [$AA]
+	//   -b, --bb  <arg>   another option (required)
+	//   -h, --help        Show this help message and exit.
+	//
+	// arguments:
+	//   <cc>   a required positional argument (required)
+	//   [dd]   an optional positional argument [$PA2]
+}
+
+func ExampleDefaultShortHelp_simpleWithSubcommands() {
+	c := cli.NewCmd("eg").
+		Help("an example command").
+		Opt(cli.NewOpt("aa").Short('a').Env("AA").Default("def").Help("an option")).
+		Opt(cli.NewOpt("bb").Short('b').Required().Help("another option")).
+		Subcmd(cli.NewCmd("subcommand1").Help("a subcommand")).
+		Subcmd(cli.NewCmd("subcommand2").Help("another subcommand"))
+
+	h := cli.DefaultShortHelp(&c)
+	fmt.Println(h)
+	// Output:
+	// eg - an example command
+	//
+	// usage:
+	//   eg [options] <command>
+	//
+	// options:
+	//   -a, --aa  <arg>   an option (default: def) [$AA]
+	//   -b, --bb  <arg>   another option (required)
+	//   -h, --help        Show this help message and exit.
+	//
+	// commands:
+	//    subcommand1   a subcommand
+	//    subcommand2   another subcommand
+}
+
+func ExampleDefaultShortHelp_complex() {
+	c := cli.NewCmd("eg").
+		Help("an example command").
+		Opt(cli.NewOpt("aa").Env("AA").Default("def").Help("an option")).
+		Opt(cli.NewOpt("bb").
+			Help("another option that is required and has a really long blurb to show how it will be wrapped").
+			Required()).
+		Opt(cli.NewOpt("short-blurb-but-really-long-name").Help("another option")).
+		Arg(cli.NewArg("posarg1").Required().Help("a required positional argument")).
+		Arg(cli.NewArg("posarg2").Env("PA2").Help("an optional positional argument"))
+
+	h := cli.DefaultShortHelp(&c)
+	fmt.Println(h)
+	// Output:
+	// eg - an example command
+	//
+	// usage:
+	//   eg [options] [arguments]
+	//
+	// options:
+	//       --aa  <arg>   an option (default: def) [$AA]
+	//       --bb  <arg>   another option that is required and has a really long blurb to show
+	//                     how it will be wrapped (required)
+	//   -h, --help        Show this help message and exit.
+	//       --short-blurb-but-really-long-name  <arg>
+	//                     another option
+	//
+	// arguments:
+	//   <posarg1>   a required positional argument (required)
+	//   [posarg2]   an optional positional argument [$PA2]
 }
