@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // ParseBool returns the boolean value represented by the given string.
@@ -67,8 +68,14 @@ func numError(err error) error {
 	return err
 }
 
-// ParseURL uses standard library [url.Parse] function to parse and
-// return the *url.URL value represented by the given string.
+// ParseDuration uses the standard library [time.ParseDuration] function to
+// parse and return the time.Duration value represented by the given string.
+func ParseDuration(s string) (any, error) {
+	return time.ParseDuration(s)
+}
+
+// ParseURL uses the standard library [url.Parse] function to parse
+// and return the *url.URL value represented by the given string.
 func ParseURL(s string) (any, error) {
 	return url.Parse(s)
 }

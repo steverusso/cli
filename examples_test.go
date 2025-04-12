@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/steverusso/cli"
 )
@@ -71,6 +72,21 @@ func ExampleParseURL() {
 	// Output:
 	// https://pkg.go.dev/github.com/steverusso/cli#ParseURL
 	// parsing option 'u': parse "b@d://.com": first path segment in URL cannot contain colon
+}
+
+func ExampleParseDuration() {
+	cmd := cli.NewCmd("duration").
+		Opt(cli.NewOpt("d").WithParser(cli.ParseDuration)).
+		Build()
+
+	p := cmd.ParseOrExit("-d", "1h2m3s")
+	fmt.Println(p.Opt("d").(time.Duration))
+
+	_, err := cmd.Parse("-d", "not_a_duration")
+	fmt.Println(err)
+	// Output:
+	// 1h2m3s
+	// parsing option 'd': time: invalid duration "not_a_duration"
 }
 
 func ExampleCommand_HelpUsage() {
