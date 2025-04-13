@@ -89,6 +89,21 @@ func ExampleParseDuration() {
 	// parsing option 'd': time: invalid duration "not_a_duration"
 }
 
+func ExampleNewTimeParser() {
+	cmd := cli.NewCmd("times").
+		Opt(cli.NewOpt("t").WithParser(cli.NewTimeParser("2006-01-02"))).
+		Build()
+
+	p := cmd.ParseOrExit("-t", "2025-04-12")
+	fmt.Println(p.Opt("t").(time.Time))
+
+	_, err := cmd.Parse("-t", "hello")
+	fmt.Println(err)
+	// Output:
+	// 2025-04-12 00:00:00 +0000 UTC
+	// parsing option 't': parsing time "hello" as "2006-01-02": cannot parse "hello" as "2006"
+}
+
 func ExampleCommand_HelpUsage() {
 	_, err := cli.NewCmd("eg").
 		Help("an example command").

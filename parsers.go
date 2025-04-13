@@ -74,6 +74,15 @@ func ParseDuration(s string) (any, error) {
 	return time.ParseDuration(s)
 }
 
+// NewTimeParser returns a [ValueParser] that will use the standard library
+// [time.Parse] function with the given layout string to parse and return a
+// time.Time from a given string.
+func NewTimeParser(layout string) ValueParser {
+	return func(s string) (any, error) {
+		return time.Parse(layout, s)
+	}
+}
+
 // ParseURL uses the standard library [url.Parse] function to parse
 // and return the *url.URL value represented by the given string.
 func ParseURL(s string) (any, error) {
