@@ -104,6 +104,32 @@ func ExampleNewTimeParser() {
 	// parsing option 't': parsing time "hello" as "2006-01-02": cannot parse "hello" as "2006"
 }
 
+func ExampleNewFileParser() {
+	cmd := cli.NewCmd("readfile").
+		Opt(cli.NewOpt("i").WithParser(cli.NewFileParser(cli.ParseInt))).
+		Opt(cli.NewOpt("s").WithParser(cli.NewFileParser(nil))).
+		Build()
+
+	p := cmd.ParseOrExit(
+		"-i", "testdata/sample_int",
+		"-s", "testdata/sample_int",
+	)
+
+	fmt.Println(p.Opt("i").(int))
+	fmt.Printf("%q\n", p.Opt("s").(string))
+
+	_, err := cmd.Parse("-i", "testdata/sample_empty")
+	fmt.Println(err)
+
+	_, err = cmd.Parse("-i", "path_that_doesnt_exist")
+	fmt.Println(err)
+	// Output:
+	// 12345
+	// "12345"
+	// parsing option 'i': invalid syntax
+	// parsing option 'i': open path_that_doesnt_exist: no such file or directory
+}
+
 func ExampleCommand_HelpUsage() {
 	_, err := cli.NewCmd("eg").
 		Help("an example command").

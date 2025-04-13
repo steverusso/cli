@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 )
@@ -87,4 +88,25 @@ func NewTimeParser(layout string) ValueParser {
 // and return the *url.URL value represented by the given string.
 func ParseURL(s string) (any, error) {
 	return url.Parse(s)
+}
+
+// NewFileParser returns a [ValueParser] that will treat an input string as a
+// file path and use given parser to parse the content of the file at that path.
+func NewFileParser(vp ValueParser) ValueParser {
+	return func(fileName string) (any, error) {
+		b, err := os.ReadFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+		s := string(b)
+		// Drop trailing newline.
+		if len(s) > 0 && s[len(s)-1] == '\n' {
+			s = s[:len(s)-1]
+		}
+		// If we don't have a value parser, just return the raw string.
+		if vp == nil {
+			return s, nil
+		}
+		return vp(s)
+	}
 }
