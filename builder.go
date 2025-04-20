@@ -131,13 +131,20 @@ func NewCmd(name string) Command {
 	return c.Opt(DefaultHelpInput)
 }
 
-func (c Command) HelpUsage(lines ...string) Command {
-	c.helpUsage = append(c.helpUsage, lines...)
+func (c Command) Help(blurb string) Command {
+	c.helpBlurb = blurb
 	return c
 }
 
-func (c Command) Help(blurb string) Command {
-	c.helpBlurb = blurb
+// HelpExtra adds an "overview" section to the Command's help message. This is typically
+// for longer-form content that wouldn't fit well within the 1-2 sentence "blurb."
+func (c Command) HelpExtra(extra string) Command {
+	c.helpExtra = extra
+	return c
+}
+
+func (c Command) HelpUsage(lines ...string) Command {
+	c.helpUsage = append(c.helpUsage, lines...)
 	return c
 }
 

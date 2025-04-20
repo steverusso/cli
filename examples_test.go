@@ -130,6 +130,30 @@ func ExampleNewFileParser() {
 	// parsing option 'i': open path_that_doesnt_exist: no such file or directory
 }
 
+func ExampleCommand_HelpExtra() {
+	_, err := cli.NewCmd("eg").
+		Help("an example command").
+		HelpExtra("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.").
+		Build().
+		Parse("--help")
+
+	fmt.Println(err)
+	// Output:
+	// eg - an example command
+	//
+	// overview:
+	//   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+	//   incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+	//   exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+	//
+	// usage:
+	//   eg [options]
+	//
+	// options:
+	//   -h, --help
+	//       Show this help message and exit.
+}
+
 func ExampleCommand_HelpUsage() {
 	_, err := cli.NewCmd("eg").
 		Help("an example command").
