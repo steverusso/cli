@@ -409,6 +409,8 @@ func parse(c *Command, p *ParsedCommand, args []string) error {
 		p.Opts = append(p.Opts, pi)
 	}
 
+	var errMissingOpts error
+
 	// check that all required options were provided
 	var missing []string
 	for i := range c.opts {
@@ -426,7 +428,14 @@ func parse(c *Command, p *ParsedCommand, args []string) error {
 		}
 	}
 	if len(missing) > 0 {
-		return MissingOptionsError{Names: missing}
+		errMissingOpts = MissingOptionsError{Names: missing}
+
+		// If we are parsing positional arguments instead of subcommands, we can just
+		// return this error right now. Otherwise we have to wait to see if a subcommand
+		// requests help.
+		if len(c.subcmds) == 0 {
+			return errMissingOpts
+		}
 	}
 
 	rest := args[i:]
@@ -472,18 +481,23 @@ func parse(c *Command, p *ParsedCommand, args []string) error {
 		Name: rest[0],
 	}
 
-	var cmdInfo *Command
+	var subcmdInfo *Command
 	for i := range c.subcmds {
 		if c.subcmds[i].name == p.Subcmd.Name {
-			cmdInfo = &c.subcmds[i]
+			subcmdInfo = &c.subcmds[i]
 			break
 		}
 	}
-	if cmdInfo == nil {
+	if subcmdInfo == nil {
 		return UnknownSubcmdError{Name: p.Subcmd.Name}
 	}
 
-	return parse(cmdInfo, p.Subcmd, rest[1:])
+	errFromSubcmd := parse(subcmdInfo, p.Subcmd, rest[1:])
+	if _, ok := errFromSubcmd.(HelpRequestError); ok {
+		return errFromSubcmd
+	}
+
+	return errMissingOpts
 }
 
 func newParsedInput(in *Input, src ParsedFrom, rawValue string) (ParsedInput, error) {

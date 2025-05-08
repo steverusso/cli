@@ -339,6 +339,24 @@ func TestParsing(t *testing.T) {
 				},
 			},
 		},
+		// subcommand help won't require required values
+		{
+			name: "subcommands",
+			cmd: NewCmd("cmd").
+				Opt(NewOpt("aa").Required()).
+				Subcmd(NewCmd("one").
+					Opt(NewOpt("cc"))).
+				Build(),
+			variations: []testInputOutput{
+				{
+					ttInfo: ttCase(),
+					args:   []string{"one", "-h"},
+					expErr: HelpRequestError{
+						HelpMsg: "cmd one - \n\nusage:\n  cmd one [options]\n\noptions:\n      --cc  <arg>   \n  -h, --help        Show this help message and exit.\n",
+					},
+				},
+			},
+		},
 		// custom parser
 		{
 			name: "custom_parser",
@@ -463,6 +481,9 @@ func TestParsing(t *testing.T) {
 				}
 
 				got, gotErr := tt.cmd.Parse(tio.args...)
+				if tio.expErr != nil && gotErr == nil {
+					t.Fatalf("expected error %[1]T: %[1]v, got no error", tio.expErr)
+				}
 				if gotErr != nil {
 					if tio.expErr == nil {
 						t.Fatalf("expected no error, got %[1]T: %[1]v", gotErr)
@@ -481,6 +502,8 @@ func TestParsing(t *testing.T) {
 }
 
 func cmpParsed(t *testing.T, tioInfo string, exp, got ParsedCommand) {
+	t.Helper()
+
 	// options
 	{
 		expNumOpts := len(exp.Opts)
