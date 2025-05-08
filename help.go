@@ -169,6 +169,11 @@ func DefaultFullHelp(c *Command) string {
 	u.WriteString(" - ")
 	u.WriteString(c.helpBlurb)
 
+	if c.helpExtra != "" {
+		u.WriteString("\n\noverview:\n")
+		u.WriteString("  " + wrapBlurb(c.helpExtra, 2, helpMsgTextWidth))
+	}
+
 	// build default usage line or range user provided ones
 	u.WriteString("\n\nusage:\n")
 	if len(c.helpUsage) == 0 {
@@ -188,12 +193,6 @@ func DefaultFullHelp(c *Command) string {
 			u.WriteString(c.helpUsage[i])
 			u.WriteByte('\n')
 		}
-	}
-
-	if c.helpExtra != "" {
-		u.WriteString("\noverview:\n")
-		u.WriteString(c.helpExtra)
-		u.WriteByte('\n')
 	}
 
 	u.WriteString("\noptions:\n")
