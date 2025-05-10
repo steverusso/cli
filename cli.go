@@ -492,12 +492,16 @@ func parse(c *Command, p *ParsedCommand, args []string) error {
 		return UnknownSubcmdError{Name: p.Subcmd.Name}
 	}
 
+	// If we have an error from parsing this command (from above), only return it so long
+	// as no subcommand has requested a help message.
 	errFromSubcmd := parse(subcmdInfo, p.Subcmd, rest[1:])
-	if _, ok := errFromSubcmd.(HelpRequestError); ok {
-		return errFromSubcmd
+	if errMissingOpts != nil {
+		if _, ok := errFromSubcmd.(HelpRequestError); !ok {
+			return errMissingOpts
+		}
 	}
 
-	return errMissingOpts
+	return errFromSubcmd
 }
 
 func newParsedInput(in *Input, src ParsedFrom, rawValue string) (ParsedInput, error) {

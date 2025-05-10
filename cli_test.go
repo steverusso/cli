@@ -345,15 +345,20 @@ func TestParsing(t *testing.T) {
 			cmd: NewCmd("cmd").
 				Opt(NewOpt("aa").Required()).
 				Subcmd(NewCmd("one").
-					Opt(NewOpt("cc"))).
+					Opt(NewOpt("cc").Required())).
 				Build(),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
 					args:   []string{"one", "-h"},
 					expErr: HelpRequestError{
-						HelpMsg: "cmd one - \n\nusage:\n  cmd one [options]\n\noptions:\n      --cc  <arg>   \n  -h, --help        Show this help message and exit.\n",
+						HelpMsg: "cmd one - \n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
 					},
+				},
+				{
+					ttInfo: ttCase(),
+					args:   []string{"--aa=1", "one"},
+					expErr: MissingOptionsError{Names: []string{"--cc"}},
 				},
 			},
 		},
