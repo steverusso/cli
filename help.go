@@ -25,9 +25,7 @@ func DefaultShortHelp(c *Command) string {
 	u := strings.Builder{}
 	u.Grow((len(c.opts) + len(c.args) + len(c.subcmds)) * 200)
 
-	path := strings.Join(c.path, " ")
-
-	u.WriteString(path)
+	u.WriteString(strings.Join(c.path, " "))
 	u.WriteString(" - ")
 	u.WriteString(c.helpBlurb)
 
@@ -35,7 +33,7 @@ func DefaultShortHelp(c *Command) string {
 	u.WriteString("\n\nusage:\n")
 	if len(c.helpUsage) == 0 {
 		u.WriteString("  ")
-		u.WriteString(path)
+		u.WriteString(c.path[len(c.path)-1])
 		u.WriteString(" [options]")
 		switch {
 		case len(c.args) > 0:
@@ -163,9 +161,7 @@ func DefaultFullHelp(c *Command) string {
 	u := strings.Builder{}
 	u.Grow((len(c.opts) + len(c.args) + len(c.subcmds)) * 200)
 
-	path := strings.Join(c.path, " ")
-
-	u.WriteString(path)
+	u.WriteString(strings.Join(c.path, " "))
 	u.WriteString(" - ")
 	u.WriteString(c.helpBlurb)
 
@@ -178,7 +174,7 @@ func DefaultFullHelp(c *Command) string {
 	u.WriteString("\n\nusage:\n")
 	if len(c.helpUsage) == 0 {
 		u.WriteString("  ")
-		u.WriteString(path)
+		u.WriteString(c.path[len(c.path)-1])
 		u.WriteString(" [options]")
 		switch {
 		case len(c.args) > 0:
