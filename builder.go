@@ -2,13 +2,10 @@ package cli
 
 import "strings"
 
-var DefaultHelpInput = Input{
-	nameShort: "h",
-	nameLong:  "help",
-	isBoolOpt: true,
-	helpBlurb: "Show this help message and exit.",
-	helpGen:   DefaultHelpGenerator,
-}
+var DefaultHelpInput = NewBoolOpt("help").
+	Short('h').
+	Help("Show this help message and exit.").
+	HelpGen(DefaultHelpGenerator)
 
 var (
 	errMixingPosArgsAndSubcmds = "commands cannot have both positional args and subcommands"
