@@ -229,8 +229,9 @@ func DefaultFullHelp(c *Command) string {
 		if o.isRequired {
 			content += "   (required)"
 		}
-		content += "\n"
-		content += "      " + wrapBlurb(o.helpBlurb, 6, helpMsgTextWidth)
+		if o.helpBlurb != "" {
+			content += "\n      " + wrapBlurb(o.helpBlurb, 6, helpMsgTextWidth)
+		}
 		if extra != "" {
 			content += "\n" + extra
 		}

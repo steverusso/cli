@@ -140,6 +140,9 @@ func (c Command) HelpExtra(extra string) Command {
 	return c
 }
 
+// HelpUsage overrides the default "usage" lines in the command's help message. These are
+// intended to show the user some different ways to invoke this command using whatever
+// combinations of options / arguments / subcommands.
 func (c Command) HelpUsage(lines ...string) Command {
 	c.helpUsage = append(c.helpUsage, lines...)
 	return c
@@ -237,6 +240,9 @@ func NewArg(id string) Input {
 	return Input{id: id, valueName: id}
 }
 
+// WithParser sets the Input's parser to the given [ValueParser]. This will override any
+// parser that has been set up until this point. Providing nil as the parser will restore
+// the default behavior of just using the plain string value when this Input is parsed.
 func (in Input) WithParser(vp ValueParser) Input {
 	in.valueParser = vp
 	return in
@@ -277,6 +283,9 @@ func (in Input) Required() Input {
 	return in
 }
 
+// ValueName sets the display name of this Input's argument value. For non-boolean
+// options, it's the argument of the option. For positional arguments, it's the argument
+// name itself.
 func (in Input) ValueName(name string) Input {
 	in.valueName = name
 	return in

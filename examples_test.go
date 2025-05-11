@@ -41,6 +41,51 @@ func ExampleInput_ShortOnly() {
 	// unknown option '--flag'
 }
 
+func ExampleInput_ValueName_option() {
+	_, err := cli.NewCmd("program").
+		Help("example program").
+		Opt(cli.NewOpt("aa").ValueName("str").Help("it says '<str>' above instead of '<arg>'")).
+		Build().
+		Parse("--help")
+
+	fmt.Println(err)
+	// Output:
+	// program - example program
+	//
+	// usage:
+	//   program [options]
+	//
+	// options:
+	//   --aa  <str>
+	//       it says '<str>' above instead of '<arg>'
+	//
+	//   -h, --help
+	//       Show this help message and exit.
+}
+
+func ExampleInput_ValueName_positionalArgument() {
+	_, err := cli.NewCmd("program").
+		Help("example program").
+		Arg(cli.NewArg("aa").ValueName("filename").Help("it says '[filename]' above instead of '[aa]'")).
+		Build().
+		Parse("--help")
+
+	fmt.Println(err)
+	// Output:
+	// program - example program
+	//
+	// usage:
+	//   program [options] [arguments]
+	//
+	// options:
+	//   -h, --help
+	//       Show this help message and exit.
+	//
+	// arguments:
+	//   [filename]
+	//       it says '[filename]' above instead of '[aa]'
+}
+
 func ExampleInput_WithParser() {
 	pointParser := func(s string) (any, error) {
 		comma := strings.IndexByte(s, ',')
