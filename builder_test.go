@@ -57,9 +57,9 @@ func TestBuilder(t *testing.T) {
 				func() { NewCmd("ab").Subcmd(NewCmd("c\td")) },
 			},
 			expPanicVals: []any{
-				invalidCmdNameError{name: " ", reason: "cannot contain whitespace"},
-				invalidCmdNameError{name: "a b", reason: "cannot contain whitespace"},
-				invalidCmdNameError{name: "c\td", reason: "cannot contain whitespace"},
+				"invalid command name ' ': cannot contain whitespace",
+				"invalid command name 'a b': cannot contain whitespace",
+				"invalid command name 'c\td': cannot contain whitespace",
 			},
 		},
 		{
@@ -104,8 +104,8 @@ func TestBuilder(t *testing.T) {
 				},
 			},
 			expPanicVals: []any{
-				illegalDupError{cmdPath: "root one", what: "ids", dups: "o1"},
-				illegalDupError{cmdPath: "root", what: "ids", dups: "a1"},
+				"command 'root one' contains duplicate option ids 'o1'",
+				"command 'root' contains duplicate argument ids 'a1'",
 			},
 		},
 		{
@@ -132,8 +132,8 @@ func TestBuilder(t *testing.T) {
 			},
 			expPanicVals: []any{
 				nil,
-				illegalDupError{cmdPath: "root", what: "option short names", dups: "a"},
-				illegalDupError{cmdPath: "root", what: "option short names", dups: "b"},
+				"command 'root' contains duplicate option short name 'a'",
+				"command 'root' contains duplicate option short name 'b'",
 			},
 		},
 		{
@@ -148,7 +148,7 @@ func TestBuilder(t *testing.T) {
 				},
 			},
 			expPanicVals: []any{
-				illegalDupError{cmdPath: "root", what: "option long names", dups: "aaa"},
+				"command 'root' contains duplicate option long name 'aaa'",
 			},
 		},
 		{
@@ -202,8 +202,8 @@ func TestBuilder(t *testing.T) {
 				},
 			},
 			expPanicVals: []any{
-				illegalDupError{cmdPath: "root", what: "subcommand names", dups: "bb"},
-				illegalDupError{cmdPath: "root subcmd", what: "subcommand names", dups: "aa"},
+				"command 'root' contains duplicate subcommand name 'bb'",
+				"command 'root subcmd' contains duplicate subcommand name 'aa'",
 			},
 		},
 	} {

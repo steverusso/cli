@@ -9,7 +9,7 @@ var DefaultHelpInput = NewBoolOpt("help").
 
 var (
 	errMixingPosArgsAndSubcmds = "commands cannot have both positional args and subcommands"
-	errEmptyCmdName            = invalidCmdNameError{}
+	errEmptyCmdName            = "empty command name"
 	errEmptyInputID            = "inputs must have non-empty, unique ids"
 	errEmptyOptNames           = "options must have either a short or long name"
 	errOptAsPosArg             = "adding an option as a positional argument"
@@ -27,27 +27,18 @@ func (c *CommandInfo) validate() {
 		for z := i + 1; z < len(c.opts); z++ {
 			// assert there are no duplicate input ids
 			if c.opts[i].id == c.opts[z].id {
-				panic(illegalDupError{
-					cmdPath: strings.Join(c.path, " "),
-					what:    "ids",
-					dups:    c.opts[i].id,
-				})
+				panic("command '" + strings.Join(c.path, " ") +
+					"' contains duplicate option ids '" + c.opts[i].id + "'")
 			}
 
 			// assert there are no duplicate long or short option names
 			if c.opts[i].nameShort != "" && c.opts[i].nameShort == c.opts[z].nameShort {
-				panic(illegalDupError{
-					cmdPath: strings.Join(c.path, " "),
-					what:    "option short names",
-					dups:    c.opts[i].nameShort,
-				})
+				panic("command '" + strings.Join(c.path, " ") +
+					"' contains duplicate option short name '" + c.opts[i].nameShort + "'")
 			}
 			if c.opts[i].nameLong != "" && c.opts[i].nameLong == c.opts[z].nameLong {
-				panic(illegalDupError{
-					cmdPath: strings.Join(c.path, " "),
-					what:    "option long names",
-					dups:    c.opts[i].nameLong,
-				})
+				panic("command '" + strings.Join(c.path, " ") +
+					"' contains duplicate option long name '" + c.opts[i].nameLong + "'")
 			}
 		}
 	}
@@ -56,11 +47,8 @@ func (c *CommandInfo) validate() {
 	for i := 0; i < len(c.args)-1; i++ {
 		for z := i + 1; z < len(c.args); z++ {
 			if c.args[i].id == c.args[z].id {
-				panic(illegalDupError{
-					cmdPath: strings.Join(c.path, " "),
-					what:    "ids",
-					dups:    c.args[i].id,
-				})
+				panic("command '" + strings.Join(c.path, " ") +
+					"' contains duplicate argument ids '" + c.args[i].id + "'")
 			}
 		}
 	}
@@ -69,11 +57,8 @@ func (c *CommandInfo) validate() {
 	for i := 0; i < len(c.subcmds)-1; i++ {
 		for z := i + 1; z < len(c.subcmds); z++ {
 			if c.subcmds[i].name == c.subcmds[z].name {
-				panic(illegalDupError{
-					cmdPath: strings.Join(c.path, " "),
-					what:    "subcommand names",
-					dups:    c.subcmds[i].name,
-				})
+				panic("command '" + strings.Join(c.path, " ") +
+					"' contains duplicate subcommand name '" + c.subcmds[i].name + "'")
 			}
 		}
 	}
@@ -81,28 +66,6 @@ func (c *CommandInfo) validate() {
 	for i := range c.subcmds {
 		c.subcmds[i].validate()
 	}
-}
-
-type illegalDupError struct {
-	cmdPath string
-	what    string // input ids, option short names, option long names, subcmd names
-	dups    string
-}
-
-func (e illegalDupError) String() string {
-	return "command '" + e.cmdPath + "' contains options with duplicate " + e.what + " '" + e.dups + "'"
-}
-
-type invalidCmdNameError struct {
-	name   string
-	reason string
-}
-
-func (e invalidCmdNameError) String() string {
-	if e.name == "" {
-		return "empty command name"
-	}
-	return "invalid command name '" + e.name + "': " + e.reason
 }
 
 func NewCmd(name string) CommandInfo {
@@ -113,10 +76,7 @@ func NewCmd(name string) CommandInfo {
 	for i := range name {
 		switch name[i] {
 		case ' ', '\t', '\n', '\r':
-			panic(invalidCmdNameError{
-				name:   name,
-				reason: "cannot contain whitespace",
-			})
+			panic("invalid command name '" + name + "': cannot contain whitespace")
 		}
 	}
 
