@@ -17,12 +17,12 @@ func TestParsing(t *testing.T) {
 		ttInfo   string
 		envs     map[string]string
 		args     []string
-		expected ParsedCommand
+		expected Command
 		expErr   error
 	}
 	type testCase struct {
 		name       string
-		cmd        *RootCommand
+		cmd        *RootCommandInfo
 		variations []testInputOutput
 	}
 
@@ -42,8 +42,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-b", "v2", "--aa", "--cc=v3"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "dd", From: ParsedFrom{RawDefault: true}, RawValue: "v4", Value: "v4"},
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "v2", Value: "v2"},
 							{ID: "aa", From: ParsedFrom{Opt: "aa"}, RawValue: "", Value: true},
@@ -98,8 +98,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
 							{ID: "int", From: ParsedFrom{RawDefault: true}, RawValue: "123", Value: int(123)},
 							{ID: "uint", From: ParsedFrom{RawDefault: true}, RawValue: "456", Value: uint(456)},
@@ -116,8 +116,8 @@ func TestParsing(t *testing.T) {
 						"--int=12", "--uint", "45",
 						"--bool",
 					},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
 							{ID: "int", From: ParsedFrom{RawDefault: true}, RawValue: "123", Value: int(123)},
 							{ID: "uint", From: ParsedFrom{RawDefault: true}, RawValue: "456", Value: uint(456)},
@@ -140,8 +140,8 @@ func TestParsing(t *testing.T) {
 						"BOOL": "false",
 					},
 					args: []string{"--f32", "7.89"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
 							{ID: "int", From: ParsedFrom{RawDefault: true}, RawValue: "123", Value: int(123)},
 							{ID: "uint", From: ParsedFrom{RawDefault: true}, RawValue: "456", Value: uint(456)},
@@ -173,8 +173,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"A", "B", "C", "D", "E", "F"},
-					expected: ParsedCommand{
-						Args: []ParsedInput{
+					expected: Command{
+						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 							{ID: "arg2", From: ParsedFrom{Arg: 2}, RawValue: "B", Value: "B"},
@@ -187,8 +187,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"A", "B"},
-					expected: ParsedCommand{
-						Args: []ParsedInput{
+					expected: Command{
+						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 							{ID: "arg2", From: ParsedFrom{Arg: 2}, RawValue: "B", Value: "B"},
@@ -199,8 +199,8 @@ func TestParsing(t *testing.T) {
 					ttInfo: ttCase(),
 					envs:   map[string]string{"ARG2": "B", "ARG4": "D"},
 					args:   []string{"A"},
-					expected: ParsedCommand{
-						Args: []ParsedInput{
+					expected: Command{
+						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg2", From: ParsedFrom{Env: "ARG2"}, RawValue: "B", Value: "B"},
 							{ID: "arg4", From: ParsedFrom{Env: "ARG4"}, RawValue: "D", Value: "D"},
@@ -212,8 +212,8 @@ func TestParsing(t *testing.T) {
 					ttInfo: ttCase(),
 					envs:   map[string]string{"ARG2": "B"},
 					args:   []string{"A"},
-					expected: ParsedCommand{
-						Args: []ParsedInput{
+					expected: Command{
+						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg2", From: ParsedFrom{Env: "ARG2"}, RawValue: "B", Value: "B"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
@@ -245,11 +245,11 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"--opt1=", "arg1-val"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "opt1", From: ParsedFrom{Opt: "opt1"}, RawValue: "", Value: ""},
 						},
-						Args: []ParsedInput{
+						Args: []Input{
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "arg1-val", Value: "arg1-val"},
 						},
 					},
@@ -257,8 +257,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"--", "--opt1="},
-					expected: ParsedCommand{
-						Args: []ParsedInput{
+					expected: Command{
+						Args: []Input{
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "--opt1=", Value: "--opt1="},
 						},
 					},
@@ -266,11 +266,11 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-o=4", "--", "-rf"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "opt1", From: ParsedFrom{Opt: "o"}, RawValue: "4", Value: "4"},
 						},
-						Args: []ParsedInput{
+						Args: []Input{
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "-rf", Value: "-rf"},
 						},
 					},
@@ -278,13 +278,13 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo:   ttCase(),
 					args:     []string{"--"},
-					expected: ParsedCommand{},
+					expected: Command{},
 				},
 				{
 					ttInfo: ttCase(),
 					args:   []string{"--", "v1", "s1", "s2"},
-					expected: ParsedCommand{
-						Args: []ParsedInput{
+					expected: Command{
+						Args: []Input{
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "v1", Value: "v1"},
 						},
 						Surplus: []string{"s1", "s2"},
@@ -308,9 +308,9 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"one", "--bb", "B"},
-					expected: ParsedCommand{
-						Subcmd: &ParsedCommand{
-							Opts: []ParsedInput{
+					expected: Command{
+						Subcmd: &Command{
+							Opts: []Input{
 								{ID: "bb", From: ParsedFrom{Opt: "bb"}, RawValue: "B", Value: "B"},
 							},
 						},
@@ -319,9 +319,9 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"two", "--dd", "D"},
-					expected: ParsedCommand{
-						Subcmd: &ParsedCommand{
-							Opts: []ParsedInput{
+					expected: Command{
+						Subcmd: &Command{
+							Opts: []Input{
 								{ID: "dd", From: ParsedFrom{Opt: "dd"}, RawValue: "D", Value: "D"},
 							},
 						},
@@ -378,8 +378,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"--aa", "3,7"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "aa", From: ParsedFrom{Opt: "aa"}, RawValue: "3,7", Value: image.Point{3, 7}},
 						},
 					},
@@ -398,8 +398,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-bc"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
 						},
@@ -408,8 +408,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-cb"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
 						},
@@ -423,8 +423,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-cb", "-a", "valA"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "valA", Value: "valA"},
@@ -434,8 +434,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-cba", "valA"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "valA", Value: "valA"},
@@ -445,8 +445,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-cab"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "b", Value: "b"},
 						},
@@ -455,8 +455,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"--a", "v"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "v", Value: "v"},
 						},
 					},
@@ -469,8 +469,8 @@ func TestParsing(t *testing.T) {
 				{
 					ttInfo: ttCase(),
 					args:   []string{"-aa", "v"},
-					expected: ParsedCommand{
-						Opts: []ParsedInput{
+					expected: Command{
+						Opts: []Input{
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "a", Value: "a"},
 						},
 						Surplus: []string{"v"},
@@ -506,7 +506,7 @@ func TestParsing(t *testing.T) {
 	}
 }
 
-func cmpParsed(t *testing.T, tioInfo string, exp, got ParsedCommand) {
+func cmpParsed(t *testing.T, tioInfo string, exp, got Command) {
 	t.Helper()
 
 	// options
@@ -626,7 +626,7 @@ func TestLookups(t *testing.T) {
 	}
 	type testCase struct {
 		name       string
-		cmd        *RootCommand
+		cmd        *RootCommandInfo
 		variations []testInputOutput
 	}
 

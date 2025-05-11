@@ -7,11 +7,11 @@ import (
 	"unicode"
 )
 
-type HelpGenerator = func(ParsedInput, *Command) string
+type HelpGenerator = func(Input, *CommandInfo) string
 
 // DefaultHelpGenerator will use [DefaultShortHelp] if src is the short option,
 // or it'll use [DefaultFullHelp] if the src is the long option name.
-func DefaultHelpGenerator(src ParsedInput, c *Command) string {
+func DefaultHelpGenerator(src Input, c *CommandInfo) string {
 	if len(src.From.Opt) == 1 {
 		return DefaultShortHelp(c)
 	}
@@ -23,7 +23,7 @@ const (
 	helpShortMsgMaxFirstColLen = 24
 )
 
-func DefaultShortHelp(c *Command) string {
+func DefaultShortHelp(c *CommandInfo) string {
 	u := strings.Builder{}
 	u.Grow((len(c.opts) + len(c.args) + len(c.subcmds)) * 200)
 
@@ -54,7 +54,7 @@ func DefaultShortHelp(c *Command) string {
 
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.opts)
-	slices.SortStableFunc(opts, func(a, b Input) int {
+	slices.SortStableFunc(opts, func(a, b InputInfo) int {
 		nameToCmpA := a.nameShort
 		nameToCmpB := b.nameShort
 		if a.nameLong != "" {
@@ -159,7 +159,7 @@ func DefaultShortHelp(c *Command) string {
 	return u.String()
 }
 
-func DefaultFullHelp(c *Command) string {
+func DefaultFullHelp(c *CommandInfo) string {
 	u := strings.Builder{}
 	u.Grow((len(c.opts) + len(c.args) + len(c.subcmds)) * 200)
 
@@ -195,7 +195,7 @@ func DefaultFullHelp(c *Command) string {
 
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.opts)
-	slices.SortStableFunc(opts, func(a, b Input) int {
+	slices.SortStableFunc(opts, func(a, b InputInfo) int {
 		return strings.Compare(a.nameLong, b.nameLong)
 	})
 	for i, o := range opts {
@@ -299,7 +299,7 @@ func DefaultFullHelp(c *Command) string {
 	return u.String()
 }
 
-func (o *Input) optUsgNameAndArg() string {
+func (o *InputInfo) optUsgNameAndArg() string {
 	var s string
 	if o.nameShort != "" {
 		s += "-" + o.nameShort
@@ -325,7 +325,7 @@ func (o *Input) optUsgNameAndArg() string {
 // optUsgArgName returns the usage text of an option argument for non-boolean options. For
 // example, if there's a string option named `file`, the usage might look something like
 // `--file <arg>` where "<arg>" is the usage argument name text.
-func (o *Input) optUsgArgName() string {
+func (o *InputInfo) optUsgArgName() string {
 	if o.isBoolOpt {
 		return ""
 	}

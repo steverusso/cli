@@ -11,7 +11,7 @@ import (
 	"github.com/steverusso/cli"
 )
 
-func ExampleInput_Short() {
+func ExampleInputInfo_Short() {
 	c := cli.NewCmd("eg").
 		Opt(cli.NewOpt("flag").Short('f')).
 		Build()
@@ -26,7 +26,7 @@ func ExampleInput_Short() {
 	// world
 }
 
-func ExampleInput_ShortOnly() {
+func ExampleInputInfo_ShortOnly() {
 	c := cli.NewCmd("eg").
 		Opt(cli.NewOpt("flag").ShortOnly('f')).
 		Build()
@@ -41,7 +41,7 @@ func ExampleInput_ShortOnly() {
 	// unknown option '--flag'
 }
 
-func ExampleInput_ValueName_option() {
+func ExampleInputInfo_ValueName_option() {
 	_, err := cli.NewCmd("program").
 		Help("example program").
 		Opt(cli.NewOpt("aa").ValueName("str").Help("it says '<str>' above instead of '<arg>'")).
@@ -63,7 +63,7 @@ func ExampleInput_ValueName_option() {
 	//       Show this help message and exit.
 }
 
-func ExampleInput_ValueName_positionalArgument() {
+func ExampleInputInfo_ValueName_positionalArgument() {
 	_, err := cli.NewCmd("program").
 		Help("example program").
 		Arg(cli.NewArg("aa").ValueName("filename").Help("it says '[filename]' above instead of '[aa]'")).
@@ -86,7 +86,7 @@ func ExampleInput_ValueName_positionalArgument() {
 	//       it says '[filename]' above instead of '[aa]'
 }
 
-func ExampleInput_WithParser() {
+func ExampleInputInfo_WithParser() {
 	pointParser := func(s string) (any, error) {
 		comma := strings.IndexByte(s, ',')
 		x, _ := strconv.Atoi(s[:comma])
@@ -175,7 +175,7 @@ func ExampleNewFileParser() {
 	// parsing option 'i': open path_that_doesnt_exist: no such file or directory
 }
 
-func ExampleCommand_HelpExtra() {
+func ExampleCommandInfo_HelpExtra() {
 	_, err := cli.NewCmd("eg").
 		Help("an example command").
 		HelpExtra("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.").
@@ -199,7 +199,7 @@ func ExampleCommand_HelpExtra() {
 	//       Show this help message and exit.
 }
 
-func ExampleCommand_HelpUsage() {
+func ExampleCommandInfo_HelpUsage() {
 	_, err := cli.NewCmd("eg").
 		Help("an example command").
 		HelpUsage(
