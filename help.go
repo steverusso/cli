@@ -9,8 +9,10 @@ import (
 
 type HelpGenerator = func(ParsedInput, *Command) string
 
+// DefaultHelpGenerator will use [DefaultShortHelp] if src is the short option,
+// or it'll use [DefaultFullHelp] if the src is the long option name.
 func DefaultHelpGenerator(src ParsedInput, c *Command) string {
-	if src.From.Opt == "h" {
+	if len(src.From.Opt) == 1 {
 		return DefaultShortHelp(c)
 	}
 	return DefaultFullHelp(c)
