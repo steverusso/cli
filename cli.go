@@ -102,6 +102,8 @@ type CommandInfo struct {
 	opts      []InputInfo
 	args      []InputInfo
 	subcmds   []CommandInfo
+
+	isPrepped bool
 }
 
 type InputInfo struct {
@@ -178,13 +180,11 @@ func (c *Command) LookupArg(id string) (any, bool) {
 	return nil, false
 }
 
-type RootCommandInfo struct{ c CommandInfo }
-
-// ParseOrExit will parse input based on this RootCommandInfo. If help was requested, it
+// ParseOrExit will parse input based on this CommandInfo. If help was requested, it
 // will print the help message and exit the program successfully (status code 0). If
 // there is any other error, it will print the error and exit the program with failure
-// (status code 1). The input parameter semantics are the same as [RootCommandInfo.Parse].
-func (c *RootCommandInfo) ParseOrExit(args ...string) Command {
+// (status code 1). The input parameter semantics are the same as [CommandInfo.Parse].
+func (c CommandInfo) ParseOrExit(args ...string) Command {
 	p, err := c.Parse(args...)
 	if err != nil {
 		if e, ok := err.(HelpRequestError); ok {
@@ -198,16 +198,20 @@ func (c *RootCommandInfo) ParseOrExit(args ...string) Command {
 	return p
 }
 
-// ParseOrExit will parse input based on this RootCommandInfo. If no function arguments
+// ParseOrExit will parse input based on this CommandInfo. If no function arguments
 // are provided, the [os.Args] will be used.
-func (c *RootCommandInfo) Parse(args ...string) (Command, error) {
+func (c *CommandInfo) Parse(args ...string) (Command, error) {
+	if !c.isPrepped {
+		c.prepareAndValidate()
+		c.isPrepped = true
+	}
 	if args == nil {
 		args = os.Args[1:]
 	}
 	p := Command{
 		Opts: make([]Input, 0, len(args)),
 	}
-	err := parse(&c.c, &p, args)
+	err := parse(c, &p, args)
 	return p, err
 }
 

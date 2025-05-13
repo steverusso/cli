@@ -22,7 +22,7 @@ func TestParsing(t *testing.T) {
 	}
 	type testCase struct {
 		name       string
-		cmd        *RootCommandInfo
+		cmd        CommandInfo
 		variations []testInputOutput
 	}
 
@@ -36,8 +36,7 @@ func TestParsing(t *testing.T) {
 				Opt(NewOpt("bb").ShortOnly('b')).
 				Opt(NewOpt("cc").Required()).
 				Opt(NewOpt("dd").Default("v4")).
-				Opt(NewOpt("ee")).
-				Build(),
+				Opt(NewOpt("ee")),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -91,8 +90,7 @@ func TestParsing(t *testing.T) {
 				Opt(NewIntOpt("int").Env("INT").Default("123")).
 				Opt(NewUintOpt("uint").Env("UINT").Default("456")).
 				Opt(NewFloat32Opt("f32").Env("F32").Default("1.23")).
-				Opt(NewFloat64Opt("f64").Env("F64").Default("4.56")).
-				Build(),
+				Opt(NewFloat64Opt("f64").Env("F64").Default("4.56")),
 			variations: []testInputOutput{
 				// no input, just relying on the default values
 				{
@@ -167,8 +165,7 @@ func TestParsing(t *testing.T) {
 				Arg(NewArg("arg1").Required()).
 				Arg(NewArg("arg2").Required().Env("ARG2")).
 				Arg(NewArg("arg3")).
-				Arg(NewArg("arg4").Default("Z").Env("ARG4")).
-				Build(),
+				Arg(NewArg("arg4").Default("Z").Env("ARG4")),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -239,8 +236,7 @@ func TestParsing(t *testing.T) {
 			name: "dashdash_and_eq",
 			cmd: NewCmd("ddeq").
 				Opt(NewOpt("opt1").Short('o')).
-				Arg(NewArg("arg1")).
-				Build(),
+				Arg(NewArg("arg1")),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -302,8 +298,7 @@ func TestParsing(t *testing.T) {
 					Opt(NewOpt("cc"))).
 				Subcmd(NewCmd("two").
 					Opt(NewOpt("dd")).
-					Opt(NewOpt("ee"))).
-				Build(),
+					Opt(NewOpt("ee"))),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -345,8 +340,7 @@ func TestParsing(t *testing.T) {
 			cmd: NewCmd("cmd").
 				Opt(NewOpt("aa").Required()).
 				Subcmd(NewCmd("one").
-					Opt(NewOpt("cc").Required())).
-				Build(),
+					Opt(NewOpt("cc").Required())),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -372,8 +366,7 @@ func TestParsing(t *testing.T) {
 						x, _ := strconv.Atoi(s[:comma])
 						y, _ := strconv.Atoi(s[comma+1:])
 						return image.Point{X: x, Y: y}, nil
-					})).
-				Build(),
+					})),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -392,8 +385,7 @@ func TestParsing(t *testing.T) {
 			cmd: NewCmd("shst").
 				Opt(NewBoolOpt("bb").Short('b')).
 				Opt(NewOpt("aa").Short('a')).
-				Opt(NewBoolOpt("cc").Short('c')).
-				Build(),
+				Opt(NewBoolOpt("cc").Short('c')),
 			variations: []testInputOutput{
 				{
 					ttInfo: ttCase(),
@@ -626,7 +618,7 @@ func TestLookups(t *testing.T) {
 	}
 	type testCase struct {
 		name       string
-		cmd        *RootCommandInfo
+		cmd        CommandInfo
 		variations []testInputOutput
 	}
 
@@ -638,8 +630,7 @@ func TestLookups(t *testing.T) {
 				Opt(NewOpt("bb").ShortOnly('b')).
 				Opt(NewOpt("cc").Required()).
 				Opt(NewOpt("dd").Default("v4")).
-				Opt(NewOpt("ee")).
-				Build(),
+				Opt(NewOpt("ee")),
 			variations: []testInputOutput{
 				{
 					args: []string{"-b", "v2", "--aa", "--cc=v3"},

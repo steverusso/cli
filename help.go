@@ -196,7 +196,15 @@ func DefaultFullHelp(c *CommandInfo) string {
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.opts)
 	slices.SortStableFunc(opts, func(a, b InputInfo) int {
-		return strings.Compare(a.nameLong, b.nameLong)
+		nameToCmpA := a.nameShort
+		nameToCmpB := b.nameShort
+		if a.nameLong != "" {
+			nameToCmpA = a.nameLong
+		}
+		if b.nameLong != "" {
+			nameToCmpB = b.nameLong
+		}
+		return strings.Compare(nameToCmpA, nameToCmpB)
 	})
 	for i, o := range opts {
 		var extra string

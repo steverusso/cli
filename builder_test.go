@@ -15,7 +15,7 @@ func TestBuilder(t *testing.T) {
 			name: "control test clean ones",
 			builds: []func(){
 				func() { NewCmd("a") },
-				func() { NewCmd("a").Build() },
+				func() { c := NewCmd("a"); c.Parse() },
 			},
 			expPanicVals: []any{nil, nil},
 		},
@@ -92,7 +92,7 @@ func TestBuilder(t *testing.T) {
 							Opt(NewOpt("o3")).
 							Opt(NewOpt("o1")).
 							Opt(NewOpt("o5"))).
-						Build()
+						ParseOrExit()
 				},
 				func() {
 					NewCmd("root").
@@ -100,7 +100,7 @@ func TestBuilder(t *testing.T) {
 						Arg(NewArg("a1")).
 						Arg(NewArg("a2")).
 						Arg(NewArg("a3")).
-						Build()
+						ParseOrExit()
 				},
 			},
 			expPanicVals: []any{
@@ -115,19 +115,19 @@ func TestBuilder(t *testing.T) {
 					NewCmd("root").
 						Opt(NewOpt("aa").Short('a')).
 						Opt(NewOpt("bb").Short('b')).
-						Build()
+						ParseOrExit([]string{}...)
 				},
 				func() {
 					NewCmd("root").
 						Opt(NewOpt("aa").Short('a')).
 						Opt(NewOpt("bb").Short('a')).
-						Build()
+						ParseOrExit()
 				},
 				func() {
 					NewCmd("root").
 						Opt(NewOpt("aa").ShortOnly('b')).
 						Opt(NewOpt("bb").Short('b')).
-						Build()
+						ParseOrExit()
 				},
 			},
 			expPanicVals: []any{
@@ -144,7 +144,7 @@ func TestBuilder(t *testing.T) {
 						Opt(NewOpt("aa").Long("aaa")).
 						Opt(NewOpt("bb").Long("bbb")).
 						Opt(NewOpt("cc").Long("aaa")).
-						Build()
+						ParseOrExit()
 				},
 			},
 			expPanicVals: []any{
@@ -189,7 +189,7 @@ func TestBuilder(t *testing.T) {
 					NewCmd("root").
 						Subcmd(NewCmd("bb")).
 						Subcmd(NewCmd("bb")).
-						Build()
+						ParseOrExit()
 				},
 				func() {
 					NewCmd("root").
@@ -198,7 +198,7 @@ func TestBuilder(t *testing.T) {
 							Subcmd(NewCmd("bb")).
 							Subcmd(NewCmd("aa")).
 							Subcmd(NewCmd("cc"))).
-						Build()
+						ParseOrExit()
 				},
 			},
 			expPanicVals: []any{

@@ -13,8 +13,7 @@ import (
 
 func ExampleInputInfo_Short() {
 	c := cli.NewCmd("eg").
-		Opt(cli.NewOpt("flag").Short('f')).
-		Build()
+		Opt(cli.NewOpt("flag").Short('f'))
 
 	p1 := c.ParseOrExit("-f", "hello")
 	fmt.Println(p1.Opt("flag"))
@@ -28,8 +27,7 @@ func ExampleInputInfo_Short() {
 
 func ExampleInputInfo_ShortOnly() {
 	c := cli.NewCmd("eg").
-		Opt(cli.NewOpt("flag").ShortOnly('f')).
-		Build()
+		Opt(cli.NewOpt("flag").ShortOnly('f'))
 
 	p := c.ParseOrExit("-f", "hello")
 	fmt.Println(p.Opt("flag"))
@@ -42,12 +40,11 @@ func ExampleInputInfo_ShortOnly() {
 }
 
 func ExampleInputInfo_ValueName_option() {
-	_, err := cli.NewCmd("program").
+	c := cli.NewCmd("program").
 		Help("example program").
-		Opt(cli.NewOpt("aa").ValueName("str").Help("it says '<str>' above instead of '<arg>'")).
-		Build().
-		Parse("--help")
+		Opt(cli.NewOpt("aa").ValueName("str").Help("it says '<str>' above instead of '<arg>'"))
 
+	_, err := c.Parse("--help")
 	fmt.Println(err)
 	// Output:
 	// program - example program
@@ -64,12 +61,11 @@ func ExampleInputInfo_ValueName_option() {
 }
 
 func ExampleInputInfo_ValueName_positionalArgument() {
-	_, err := cli.NewCmd("program").
+	c := cli.NewCmd("program").
 		Help("example program").
-		Arg(cli.NewArg("aa").ValueName("filename").Help("it says '[filename]' above instead of '[aa]'")).
-		Build().
-		Parse("--help")
+		Arg(cli.NewArg("aa").ValueName("filename").Help("it says '[filename]' above instead of '[aa]'"))
 
+	_, err := c.Parse("--help")
 	fmt.Println(err)
 	// Output:
 	// program - example program
@@ -96,7 +92,6 @@ func ExampleInputInfo_WithParser() {
 
 	p := cli.NewCmd("cp").
 		Opt(cli.NewOpt("aa").WithParser(pointParser)).
-		Build().
 		ParseOrExit("--aa", "3,7")
 
 	fmt.Printf("%+#v\n", p.Opt("aa"))
@@ -106,8 +101,7 @@ func ExampleInputInfo_WithParser() {
 
 func ExampleParseURL() {
 	cmd := cli.NewCmd("url").
-		Opt(cli.NewOpt("u").WithParser(cli.ParseURL)).
-		Build()
+		Opt(cli.NewOpt("u").WithParser(cli.ParseURL))
 
 	p := cmd.ParseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
 	fmt.Println(p.Opt("u").(*url.URL))
@@ -121,8 +115,7 @@ func ExampleParseURL() {
 
 func ExampleParseDuration() {
 	cmd := cli.NewCmd("duration").
-		Opt(cli.NewOpt("d").WithParser(cli.ParseDuration)).
-		Build()
+		Opt(cli.NewOpt("d").WithParser(cli.ParseDuration))
 
 	p := cmd.ParseOrExit("-d", "1h2m3s")
 	fmt.Println(p.Opt("d").(time.Duration))
@@ -136,8 +129,7 @@ func ExampleParseDuration() {
 
 func ExampleNewTimeParser() {
 	cmd := cli.NewCmd("times").
-		Opt(cli.NewOpt("t").WithParser(cli.NewTimeParser("2006-01-02"))).
-		Build()
+		Opt(cli.NewOpt("t").WithParser(cli.NewTimeParser("2006-01-02")))
 
 	p := cmd.ParseOrExit("-t", "2025-04-12")
 	fmt.Println(p.Opt("t").(time.Time))
@@ -152,8 +144,7 @@ func ExampleNewTimeParser() {
 func ExampleNewFileParser() {
 	cmd := cli.NewCmd("readfile").
 		Opt(cli.NewOpt("i").WithParser(cli.NewFileParser(cli.ParseInt))).
-		Opt(cli.NewOpt("s").WithParser(cli.NewFileParser(nil))).
-		Build()
+		Opt(cli.NewOpt("s").WithParser(cli.NewFileParser(nil)))
 
 	p := cmd.ParseOrExit(
 		"-i", "testdata/sample_int",
@@ -176,12 +167,11 @@ func ExampleNewFileParser() {
 }
 
 func ExampleCommandInfo_HelpExtra() {
-	_, err := cli.NewCmd("eg").
+	c := cli.NewCmd("eg").
 		Help("an example command").
-		HelpExtra("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.").
-		Build().
-		Parse("--help")
+		HelpExtra("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
 
+	_, err := c.Parse("--help")
 	fmt.Println(err)
 	// Output:
 	// eg - an example command
@@ -200,16 +190,15 @@ func ExampleCommandInfo_HelpExtra() {
 }
 
 func ExampleCommandInfo_HelpUsage() {
-	_, err := cli.NewCmd("eg").
+	c := cli.NewCmd("eg").
 		Help("an example command").
 		HelpUsage(
 			"eg [--aa <arg>]",
 			"eg [-h]",
 		).
-		Opt(cli.NewOpt("aa").Help("an option")).
-		Build().
-		Parse("--help")
+		Opt(cli.NewOpt("aa").Help("an option"))
 
+	_, err := c.Parse("--help")
 	fmt.Println(err)
 	// Output:
 	// eg - an example command
@@ -233,10 +222,15 @@ func ExampleDefaultFullHelp() {
 		Opt(cli.NewOpt("bb").
 			Help("another option that is required and has a really long blurb to show how it will be wrapped").
 			Required()).
-		Arg(cli.NewArg("cc").Help("a positional argument"))
+		Arg(cli.NewArg("cc").Help("a positional argument")).
+		Opt(cli.NewBoolOpt("h").
+			Help("will show how this command looks in the default full help message").
+			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+				return cli.DefaultFullHelp(c)
+			}))
 
-	h := cli.DefaultFullHelp(&c)
-	fmt.Println(h)
+	_, err := c.Parse("-h")
+	fmt.Println(err)
 	// Output:
 	// eg - an example command
 	//
@@ -254,8 +248,8 @@ func ExampleDefaultFullHelp() {
 	//       another option that is required and has a really long blurb to show how it will be
 	//       wrapped
 	//
-	//   -h, --help
-	//       Show this help message and exit.
+	//   -h
+	//       will show how this command looks in the default full help message
 	//
 	// arguments:
 	//   [cc]
@@ -268,10 +262,15 @@ func ExampleDefaultShortHelp_simple() {
 		Opt(cli.NewOpt("aa").Short('a').Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").Short('b').Required().Help("another option")).
 		Arg(cli.NewArg("cc").Required().Help("a required positional argument")).
-		Arg(cli.NewArg("dd").Env("PA2").Help("an optional positional argument"))
+		Arg(cli.NewArg("dd").Env("PA2").Help("an optional positional argument")).
+		Opt(cli.NewBoolOpt("h").
+			Help("will show the default short help message").
+			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+				return cli.DefaultShortHelp(c)
+			}))
 
-	h := cli.DefaultShortHelp(&c)
-	fmt.Println(h)
+	_, err := c.Parse("-h")
+	fmt.Println(err)
 	// Output:
 	// eg - an example command
 	//
@@ -281,7 +280,7 @@ func ExampleDefaultShortHelp_simple() {
 	// options:
 	//   -a, --aa  <arg>   an option (default: def) [$AA]
 	//   -b, --bb  <arg>   another option (required)
-	//   -h, --help        Show this help message and exit.
+	//   -h                will show the default short help message
 	//
 	// arguments:
 	//   <cc>   a required positional argument (required)
@@ -294,10 +293,15 @@ func ExampleDefaultShortHelp_simpleWithSubcommands() {
 		Opt(cli.NewOpt("aa").Short('a').Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").Short('b').Required().Help("another option")).
 		Subcmd(cli.NewCmd("subcommand1").Help("a subcommand")).
-		Subcmd(cli.NewCmd("subcommand2").Help("another subcommand"))
+		Subcmd(cli.NewCmd("subcommand2").Help("another subcommand")).
+		Opt(cli.NewBoolOpt("h").
+			Help("will show the default short help message").
+			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+				return cli.DefaultShortHelp(c)
+			}))
 
-	h := cli.DefaultShortHelp(&c)
-	fmt.Println(h)
+	_, err := c.Parse("-h")
+	fmt.Println(err)
 	// Output:
 	// eg - an example command
 	//
@@ -307,7 +311,7 @@ func ExampleDefaultShortHelp_simpleWithSubcommands() {
 	// options:
 	//   -a, --aa  <arg>   an option (default: def) [$AA]
 	//   -b, --bb  <arg>   another option (required)
-	//   -h, --help        Show this help message and exit.
+	//   -h                will show the default short help message
 	//
 	// commands:
 	//    subcommand1   a subcommand
@@ -323,10 +327,15 @@ func ExampleDefaultShortHelp_complex() {
 			Required()).
 		Opt(cli.NewOpt("short-blurb-but-really-long-name").Help("another option")).
 		Arg(cli.NewArg("posarg1").Required().Help("a required positional argument")).
-		Arg(cli.NewArg("posarg2").Env("PA2").Help("an optional positional argument"))
+		Arg(cli.NewArg("posarg2").Env("PA2").Help("an optional positional argument")).
+		Opt(cli.NewBoolOpt("h").
+			Help("will show the default short help message").
+			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+				return cli.DefaultShortHelp(c)
+			}))
 
-	h := cli.DefaultShortHelp(&c)
-	fmt.Println(h)
+	_, err := c.Parse("-h")
+	fmt.Println(err)
 	// Output:
 	// eg - an example command
 	//
@@ -337,7 +346,7 @@ func ExampleDefaultShortHelp_complex() {
 	//       --aa  <arg>   an option (default: def) [$AA]
 	//       --bb  <arg>   another option that is required and has a really long blurb to show
 	//                     how it will be wrapped (required)
-	//   -h, --help        Show this help message and exit.
+	//   -h                will show the default short help message
 	//       --short-blurb-but-really-long-name  <arg>
 	//                     another option
 	//

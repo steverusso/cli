@@ -16,12 +16,20 @@ var (
 	errReqArgAfterOptional     = "required positional arguments cannot come after optional ones"
 )
 
-func (c CommandInfo) Build() *RootCommandInfo {
-	c.validate()
-	return &RootCommandInfo{c: c}
-}
+func (c *CommandInfo) prepareAndValidate() {
+	// Add the default help option here as long as this
+	// command doesn't already have a help option.
+	var hasHelpOpt bool
+	for i := range c.opts {
+		if c.opts[i].helpGen != nil {
+			hasHelpOpt = true
+			break
+		}
+	}
+	if !hasHelpOpt {
+		*c = (*c).Opt(DefaultHelpInput)
+	}
 
-func (c *CommandInfo) validate() {
 	// option assertions
 	for i := 0; i < len(c.opts)-1; i++ {
 		for z := i + 1; z < len(c.opts); z++ {
@@ -64,7 +72,7 @@ func (c *CommandInfo) validate() {
 	}
 
 	for i := range c.subcmds {
-		c.subcmds[i].validate()
+		c.subcmds[i].prepareAndValidate()
 	}
 }
 
@@ -80,12 +88,11 @@ func NewCmd(name string) CommandInfo {
 		}
 	}
 
-	c := CommandInfo{
+	return CommandInfo{
 		name: name,
 		path: []string{name},
 		opts: make([]InputInfo, 0, 5),
 	}
-	return c.Opt(DefaultHelpInput)
 }
 
 func (c CommandInfo) Help(blurb string) CommandInfo {
