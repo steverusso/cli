@@ -1,0 +1,37 @@
+name: cli-ci
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
+      with:
+        go-version: stable
+
+    - run: go mod tidy
+    - run: go build -v ./...
+
+    - run: go install golang.org/x/tools/cmd/goimports@latest
+    - run: go install mvdan.cc/gofumpt@latest
+    - run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+    - run: goimports -w . && gofumpt -w .
+
+    - name: Verify no changes
+      run: |
+        if [ -n "$(git diff)" ]; then
+          git diff
+          exit 1
+        fi
+
+    - run: go test -v ./...
+
+    - run: go vet -v ./...
+    - run: staticcheck ./...
