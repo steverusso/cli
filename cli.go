@@ -148,44 +148,88 @@ type ParsedFrom struct {
 	RawDefault bool
 }
 
-func (c *Command) Opt(id string) any {
-	if v, ok := c.LookupOpt(id); ok {
+// LookupOpt looks for an option value with the given id in the given Command and converts
+// the value to the given type T through an untested type assertion (so this will panic if
+// the value is found and can't be converted to type T). So if the option is present, the
+// typed value will be returned and the boolean will be true. Otherwise, the zero value of
+// type T will be returned and the boolean will be false.
+func LookupOpt[T any](c *Command, id string) (T, bool) {
+	for i := len(c.Opts) - 1; i >= 0; i-- {
+		if c.Opts[i].ID == id {
+			return c.Opts[i].Value.(T), true
+		}
+	}
+	var zero T
+	return zero, false
+}
+
+// GetOpt gets the option value with the given id in the given Command and converts the
+// value to the given type T through an untested type assertion. This function will panic
+// if the value isn't found or if the value can't be converted to type T. To check
+// whether the value is found instead of panicking, see [LookupOpt].
+func GetOpt[T any](c *Command, id string) T {
+	if v, ok := LookupOpt[T](c, id); ok {
 		return v
 	}
 	panic("no parsed option value found for id '" + id + "'")
 }
 
-func (c *Command) LookupOpt(id string) (any, bool) {
-	for i := len(c.Opts) - 1; i >= 0; i-- {
-		if c.Opts[i].ID == id {
-			return c.Opts[i].Value, true
-		}
-	}
-	return nil, false
-}
-
-func (c *Command) Arg(id string) any {
-	if v, ok := c.LookupArg(id); ok {
+// GetOptOr looks for an option value with the given id in the given Command and converts
+// the value to the given type T through an untested type assertion (so this will panic if
+// the value is found and can't be converted to type T). If the value isn't found, the
+// given fallback value will be returned. To check whether the value is found instead of
+// using a fallback value, see [LookupOpt].
+func GetOptOr[T any](c *Command, id string, fallback T) T {
+	if v, ok := LookupOpt[T](c, id); ok {
 		return v
 	}
-	panic("no parsed argument value found for id '" + id + "'")
+	return fallback
 }
 
-func (c *Command) LookupArg(id string) (any, bool) {
+// LookupArg looks for a positional argument value with the given id in the given Command
+// and converts the value to the given type T through an untested type assertion (so this
+// will panic if the value is found and can't be converted to type T). So if the positional
+// argument is present, the typed value will be returned and the boolean will be true.
+// Otherwise, the zero value of type T will be returned and the boolean will be false.
+func LookupArg[T any](c *Command, id string) (T, bool) {
 	for i := len(c.Args) - 1; i >= 0; i-- {
 		if c.Args[i].ID == id {
-			return c.Args[i].Value, true
+			return c.Args[i].Value.(T), true
 		}
 	}
-	return nil, false
+	var zero T
+	return zero, false
+}
+
+// GetArg gets the positional argument value with the given id in the given Command and
+// converts the value to the given type T through an untested type assertion. This
+// function will panic if the value isn't found or if the value can't be converted to type
+// T. To check whether the value is found instead of panicking, see [LookupArg].
+func GetArg[T any](c *Command, id string) T {
+	if v, ok := LookupArg[T](c, id); ok {
+		return v
+	}
+	panic("no parsed value found for positional argument id '" + id + "'")
+}
+
+// GetArgOr looks for a positional argument value with the given id in the given Command
+// and converts the value to the given type T through an untested type assertion (so this
+// will panic if the value is found and can't be converted to type T). If the value isn't
+// found, the given fallback value will be returned. To check whether the value is found
+// instead of using a fallback value, see [LookupArg].
+func GetArgOr[T any](c *Command, id string, fallback T) T {
+	if v, ok := LookupArg[T](c, id); ok {
+		return v
+	}
+	return fallback
 }
 
 // ParseOrExit will parse input based on this CommandInfo. If help was requested, it
 // will print the help message and exit the program successfully (status code 0). If
 // there is any other error, it will print the error and exit the program with failure
 // (status code 1). The input parameter semantics are the same as [CommandInfo.Parse].
-func (c CommandInfo) ParseOrExit(args ...string) Command {
-	p, err := c.Parse(args...)
+func (in CommandInfo) ParseOrExit(args ...string) *Command {
+	c, err := in.Parse(args...)
 	if err != nil {
 		if e, ok := err.(HelpRequestError); ok {
 			fmt.Print(e.HelpMsg)
@@ -195,45 +239,59 @@ func (c CommandInfo) ParseOrExit(args ...string) Command {
 			os.Exit(1)
 		}
 	}
-	return p
+	return c
 }
 
 // ParseOrExit will parse input based on this CommandInfo. If no function arguments
 // are provided, the [os.Args] will be used.
-func (c *CommandInfo) Parse(args ...string) (Command, error) {
-	if !c.isPrepped {
-		c.prepareAndValidate()
-		c.isPrepped = true
+func (in *CommandInfo) Parse(args ...string) (*Command, error) {
+	if !in.isPrepped {
+		in.prepareAndValidate()
+		in.isPrepped = true
 	}
 	if args == nil {
 		args = os.Args[1:]
 	}
-	p := Command{
+	c := &Command{
 		Opts: make([]Input, 0, len(args)),
 	}
-	err := parse(c, &p, args)
-	return p, err
+	err := parse(in, c, args)
+	return c, err
 }
 
 type HelpRequestError struct {
-	RootCause error
-	HelpMsg   string
+	HelpMsg string
 }
 
 func (h HelpRequestError) Error() string {
-	if h.RootCause != nil {
-		return h.RootCause.Error()
-	}
 	return h.HelpMsg
 }
 
-func lookupOptionByShortName(c *CommandInfo, shortName string) *InputInfo {
-	for i := range c.opts {
-		if c.opts[i].nameShort == shortName {
-			return &c.opts[i]
+func lookupOptionByShortName(in *CommandInfo, shortName string) *InputInfo {
+	for i := range in.opts {
+		if in.opts[i].nameShort == shortName {
+			return &in.opts[i]
 		}
 	}
 	return nil
+}
+
+func hasOpt(c *Command, id string) bool {
+	for i := range c.Opts {
+		if c.Opts[i].ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+func hasArg(c *Command, id string) bool {
+	for i := range c.Args {
+		if c.Args[i].ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 func parse(c *CommandInfo, p *Command, args []string) error {
@@ -419,8 +477,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 	var missing []string
 	for i := range c.opts {
 		if c.opts[i].isRequired {
-			_, ok := p.LookupOpt(c.opts[i].id)
-			if !ok {
+			if !hasOpt(p, c.opts[i].id) {
 				var name string
 				if c.opts[i].nameLong != "" {
 					name = "--" + c.opts[i].nameLong
@@ -458,8 +515,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 					if !c.args[i].isRequired {
 						break
 					}
-					_, ok := p.LookupArg(c.args[i].id)
-					if !ok {
+					if !hasArg(p, c.args[i].id) {
 						missing = append(missing, c.args[i].valueName)
 					}
 				}

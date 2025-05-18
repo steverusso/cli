@@ -14,7 +14,7 @@ import (
 
 func TestParsing(t *testing.T) {
 	type testInputOutput struct {
-		ttInfo   string
+		Case     string
 		envs     map[string]string
 		args     []string
 		expected Command
@@ -39,8 +39,8 @@ func TestParsing(t *testing.T) {
 				Opt(NewOpt("ee")),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-b", "v2", "--aa", "--cc=v3"},
+					Case: ttCase(),
+					args: []string{"-b", "v2", "--aa", "--cc=v3"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "dd", From: ParsedFrom{RawDefault: true}, RawValue: "v4", Value: "v4"},
@@ -51,32 +51,32 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"-b", "v2", "--aa"},
 					expErr: MissingOptionsError{Names: []string{"--cc"}},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"-z"},
 					expErr: UnknownOptionError{Name: "-z"},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"--zz=abc"},
 					expErr: UnknownOptionError{Name: "--zz=abc"},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"--bb", "B"},
 					expErr: UnknownOptionError{Name: "--bb"},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"--dd"},
 					expErr: MissingOptionValueError{Name: "dd"},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"-b"},
 					expErr: MissingOptionValueError{Name: "b"},
 				},
@@ -94,8 +94,8 @@ func TestParsing(t *testing.T) {
 			variations: []testInputOutput{
 				// no input, just relying on the default values
 				{
-					ttInfo: ttCase(),
-					args:   []string{},
+					Case: ttCase(),
+					args: []string{},
 					expected: Command{
 						Opts: []Input{
 							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
@@ -108,7 +108,7 @@ func TestParsing(t *testing.T) {
 				},
 				// input from args on top for every option
 				{
-					ttInfo: ttCase(),
+					Case: ttCase(),
 					args: []string{
 						"--f32", "1.2", "--f64=4.5",
 						"--int=12", "--uint", "45",
@@ -131,7 +131,7 @@ func TestParsing(t *testing.T) {
 				},
 				// input from both some args and some env vars
 				{
-					ttInfo: ttCase(),
+					Case: ttCase(),
 					envs: map[string]string{
 						"F32":  "1.2",
 						"UINT": "45",
@@ -168,8 +168,8 @@ func TestParsing(t *testing.T) {
 				Arg(NewArg("arg4").Default("Z").Env("ARG4")),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"A", "B", "C", "D", "E", "F"},
+					Case: ttCase(),
+					args: []string{"A", "B", "C", "D", "E", "F"},
 					expected: Command{
 						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
@@ -182,8 +182,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"A", "B"},
+					Case: ttCase(),
+					args: []string{"A", "B"},
 					expected: Command{
 						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
@@ -193,9 +193,9 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					envs:   map[string]string{"ARG2": "B", "ARG4": "D"},
-					args:   []string{"A"},
+					Case: ttCase(),
+					envs: map[string]string{"ARG2": "B", "ARG4": "D"},
+					args: []string{"A"},
 					expected: Command{
 						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
@@ -206,9 +206,9 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					envs:   map[string]string{"ARG2": "B"},
-					args:   []string{"A"},
+					Case: ttCase(),
+					envs: map[string]string{"ARG2": "B"},
+					args: []string{"A"},
 					expected: Command{
 						Args: []Input{
 							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
@@ -218,12 +218,12 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{},
 					expErr: MissingArgsError{Names: []string{"arg1", "arg2"}},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"A"},
 					expErr: MissingArgsError{Names: []string{"arg2"}},
 				},
@@ -239,8 +239,8 @@ func TestParsing(t *testing.T) {
 				Arg(NewArg("arg1")),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"--opt1=", "arg1-val"},
+					Case: ttCase(),
+					args: []string{"--opt1=", "arg1-val"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "opt1", From: ParsedFrom{Opt: "opt1"}, RawValue: "", Value: ""},
@@ -251,8 +251,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"--", "--opt1="},
+					Case: ttCase(),
+					args: []string{"--", "--opt1="},
 					expected: Command{
 						Args: []Input{
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "--opt1=", Value: "--opt1="},
@@ -260,8 +260,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-o=4", "--", "-rf"},
+					Case: ttCase(),
+					args: []string{"-o=4", "--", "-rf"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "opt1", From: ParsedFrom{Opt: "o"}, RawValue: "4", Value: "4"},
@@ -272,13 +272,13 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo:   ttCase(),
+					Case:     ttCase(),
 					args:     []string{"--"},
 					expected: Command{},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"--", "v1", "s1", "s2"},
+					Case: ttCase(),
+					args: []string{"--", "v1", "s1", "s2"},
 					expected: Command{
 						Args: []Input{
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "v1", Value: "v1"},
@@ -301,8 +301,8 @@ func TestParsing(t *testing.T) {
 					Opt(NewOpt("ee"))),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"one", "--bb", "B"},
+					Case: ttCase(),
+					args: []string{"one", "--bb", "B"},
 					expected: Command{
 						Subcmd: &Command{
 							Opts: []Input{
@@ -312,8 +312,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"two", "--dd", "D"},
+					Case: ttCase(),
+					args: []string{"two", "--dd", "D"},
 					expected: Command{
 						Subcmd: &Command{
 							Opts: []Input{
@@ -323,12 +323,12 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"three", "--dd", "D"},
 					expErr: UnknownSubcmdError{Name: "three"},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"--aa"},
 					expErr: ErrNoSubcmd,
 				},
@@ -343,14 +343,14 @@ func TestParsing(t *testing.T) {
 					Opt(NewOpt("cc").Required())),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"one", "-h"},
+					Case: ttCase(),
+					args: []string{"one", "-h"},
 					expErr: HelpRequestError{
 						HelpMsg: "cmd one - \n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
 					},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"--aa=1", "one"},
 					expErr: MissingOptionsError{Names: []string{"--cc"}},
 				},
@@ -369,8 +369,8 @@ func TestParsing(t *testing.T) {
 					})),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"--aa", "3,7"},
+					Case: ttCase(),
+					args: []string{"--aa", "3,7"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "aa", From: ParsedFrom{Opt: "aa"}, RawValue: "3,7", Value: image.Point{3, 7}},
@@ -388,8 +388,8 @@ func TestParsing(t *testing.T) {
 				Opt(NewBoolOpt("cc").Short('c')),
 			variations: []testInputOutput{
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-bc"},
+					Case: ttCase(),
+					args: []string{"-bc"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
@@ -398,8 +398,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-cb"},
+					Case: ttCase(),
+					args: []string{"-cb"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
@@ -408,13 +408,13 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"-cba"},
 					expErr: MissingOptionValueError{Name: "a"},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-cb", "-a", "valA"},
+					Case: ttCase(),
+					args: []string{"-cb", "-a", "valA"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
@@ -424,8 +424,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-cba", "valA"},
+					Case: ttCase(),
+					args: []string{"-cba", "valA"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
@@ -435,8 +435,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-cab"},
+					Case: ttCase(),
+					args: []string{"-cab"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
@@ -445,8 +445,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"--a", "v"},
+					Case: ttCase(),
+					args: []string{"--a", "v"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "v", Value: "v"},
@@ -454,13 +454,13 @@ func TestParsing(t *testing.T) {
 					},
 				},
 				{
-					ttInfo: ttCase(),
+					Case:   ttCase(),
 					args:   []string{"-bz"},
 					expErr: UnknownOptionError{Name: "-z"},
 				},
 				{
-					ttInfo: ttCase(),
-					args:   []string{"-aa", "v"},
+					Case: ttCase(),
+					args: []string{"-aa", "v"},
 					expected: Command{
 						Opts: []Input{
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "a", Value: "a"},
@@ -487,18 +487,18 @@ func TestParsing(t *testing.T) {
 					}
 					if !errors.Is(gotErr, tio.expErr) {
 						t.Fatalf("tt:%s: errors don't match:\nexpected: (%[2]T) %+#[2]v\n     got: (%[3]T) %+#[3]v",
-							tio.ttInfo, tio.expErr, gotErr)
+							tio.Case, tio.expErr, gotErr)
 					}
 					return
 				}
 
-				cmpParsed(t, tio.ttInfo, tio.expected, got)
+				cmpParsed(t, tio.Case, &tio.expected, got)
 			})
 		}
 	}
 }
 
-func cmpParsed(t *testing.T, tioInfo string, exp, got Command) {
+func cmpParsed(t *testing.T, tioInfo string, exp, got *Command) {
 	t.Helper()
 
 	// options
@@ -544,7 +544,7 @@ func cmpParsed(t *testing.T, tioInfo string, exp, got Command) {
 		case got.Subcmd != nil && exp.Subcmd == nil:
 			t.Errorf("tt:%s:\ndid not expect a subcommand\ngot %+v", tioInfo, got.Subcmd)
 		case got.Subcmd != nil && exp.Subcmd != nil:
-			cmpParsed(t, tioInfo, *exp.Subcmd, *got.Subcmd)
+			cmpParsed(t, tioInfo, exp.Subcmd, got.Subcmd)
 		}
 	}
 }
@@ -605,85 +605,174 @@ func TestCmpErrors(t *testing.T) {
 	}
 }
 
-func TestLookups(t *testing.T) {
-	type testLookup struct {
-		id        string
-		expExists bool
-		expValue  any
+func TestOptLookups(t *testing.T) {
+	in := NewCmd("program").
+		Opt(NewOpt("a").Required()).
+		Opt(NewOpt("b"))
+
+	// with both options present
+	{
+		c := in.ParseOrExit("-ahello", "-bworld")
+		// straight getting the opts
+		{
+			optA := GetOpt[string](c, "a")
+			if optA != "hello" {
+				t.Errorf(`expected "hello" for option a, got "%s"`, optA)
+			}
+			optB := GetOpt[string](c, "b")
+			if optB != "world" {
+				t.Errorf(`expected "world" for option b, got "%s"`, optB)
+			}
+		}
+		// above should be identical with lookups
+		{
+			optA, ok := LookupOpt[string](c, "a")
+			if optA != "hello" || !ok {
+				t.Errorf(`expected ("hello", true) for option a lookup, got ("%s", %v)`, optA, ok)
+			}
+			optB, ok := LookupOpt[string](c, "b")
+			if optB != "world" || !ok {
+				t.Errorf(`expected ("world", true) for option b lookup, got ("%s", %v)`, optB, ok)
+			}
+		}
 	}
-	type testInputOutput struct {
-		args       []string
-		optLookups []testLookup
-		argLookups []testLookup
+
+	// with only the first option 'a' present
+	{
+		c := in.ParseOrExit("-ahello")
+		// first one should be there, second one shouldn't
+		{
+			optA, ok := LookupOpt[string](c, "a")
+			if optA != "hello" || !ok {
+				t.Errorf(`expected ("hello", true) for option 'a' lookup, got ("%s", %v)`, optA, ok)
+			}
+			optB, ok := LookupOpt[string](c, "b")
+			if optB != "" || ok {
+				t.Errorf(`expected ("", false) for option 'b' lookup, got (%s, %v)`, optB, ok)
+			}
+		}
+		// based on the above assertions, we should get the right fallback for option 'b'
+		{
+			optA := GetOptOr(c, "a", "hey")
+			if optA != "hello" {
+				t.Errorf(`expected "hello" for option 'a', got "%s"`, optA)
+			}
+			optB := GetOptOr(c, "b", "earth")
+			if optB != "earth" {
+				t.Errorf(`expected "earth" for option 'b' fallback, got "%s"`, optB)
+			}
+		}
+		// trying to straight get the second one should panic
+		{
+			func() {
+				defer func() {
+					gotPanicVal := recover()
+					expPanicVal := "no parsed option value found for id 'b'"
+					if !reflect.DeepEqual(gotPanicVal, expPanicVal) {
+						t.Fatalf("panic values don't match\nexpected: %+#v\n     got: %+#v",
+							expPanicVal, gotPanicVal)
+					}
+				}()
+				_ = GetOpt[string](c, "b")
+			}()
+		}
+		// trying to cast the first one to anything but a string should panic
+		{
+			func() {
+				defer func() {
+					gotPanicVal := recover()
+					if gotPanicVal == nil {
+						t.Fatalf("didn't panic when trying to cast a string arg to an int")
+					}
+				}()
+				_ = GetOpt[int](c, "a")
+			}()
+		}
 	}
-	type testCase struct {
-		name       string
-		cmd        CommandInfo
-		variations []testInputOutput
+}
+
+func TestArgLookups(t *testing.T) {
+	in := NewCmd("program").
+		Arg(NewArg("arg1").Required()).
+		Arg(NewArg("arg2"))
+
+	// with both args present
+	{
+		c := in.ParseOrExit("hello", "world")
+		// straight getting the args
+		{
+			arg1 := GetArg[string](c, "arg1")
+			if arg1 != "hello" {
+				t.Errorf(`expected "hello" for arg1, got "%s"`, arg1)
+			}
+			arg2 := GetArg[string](c, "arg2")
+			if arg2 != "world" {
+				t.Errorf(`expected "world" for arg2, got "%s"`, arg2)
+			}
+		}
+		// above should be identical with lookups
+		{
+			arg1, ok := LookupArg[string](c, "arg1")
+			if arg1 != "hello" || !ok {
+				t.Errorf(`expected ("hello", true) for arg1 lookup, got ("%s", %v)`, arg1, ok)
+			}
+			arg2, ok := LookupArg[string](c, "arg2")
+			if arg2 != "world" || !ok {
+				t.Errorf(`expected ("world", true) for arg2, got ("%s", %v)`, arg2, ok)
+			}
+		}
 	}
 
-	for ttIdx, tt := range []testCase{
-		0: {
-			name: "options_only",
-			cmd: NewCmd("optsonly").
-				Opt(NewBoolOpt("aa")).
-				Opt(NewOpt("bb").ShortOnly('b')).
-				Opt(NewOpt("cc").Required()).
-				Opt(NewOpt("dd").Default("v4")).
-				Opt(NewOpt("ee")),
-			variations: []testInputOutput{
-				{
-					args: []string{"-b", "v2", "--aa", "--cc=v3"},
-					optLookups: []testLookup{
-						{id: "bb", expExists: true, expValue: "v2"},
-						{id: "cc", expExists: true, expValue: "v3"},
-						{id: "dd", expExists: true, expValue: "v4"},
-						{id: "ee", expExists: false, expValue: nil},
-					},
-				},
-			},
-		},
-	} {
-		for tioIdx, tio := range tt.variations {
-			t.Run(fmt.Sprintf("%s %d", tt.name, tioIdx), func(t *testing.T) {
-				gotParsed, gotErr := tt.cmd.Parse(tio.args...)
-				if gotErr != nil {
-					t.Fatalf("tt[%d], tio[%d]: error: %#+v", ttIdx, tioIdx, gotErr)
-					return
-				}
-
-				for luIdx, lu := range tio.optLookups {
-					gotValue, gotExists := gotParsed.LookupOpt(lu.id)
-					if gotExists != lu.expExists {
-						t.Fatalf("tt[%d], tio[%d], lu[%d]: expected exists %v, got %v", ttIdx, tioIdx, luIdx, lu.expExists, gotExists)
+	// with only the first arg 'arg1' present
+	{
+		c := in.ParseOrExit("hello")
+		// first one should be there, second one shouldn't
+		{
+			arg1, ok := LookupArg[string](c, "arg1")
+			if arg1 != "hello" || !ok {
+				t.Errorf(`expected ("hello", true) for arg1 lookup, got ("%s", %v)`, arg1, ok)
+			}
+			arg2, ok := LookupArg[string](c, "arg2")
+			if arg2 != "" || ok {
+				t.Errorf(`expected ("", false) for arg2, got (%s, %v)`, arg2, ok)
+			}
+		}
+		// based on the above assertions, we should get the right fallback for arg2
+		{
+			arg1 := GetArgOr(c, "arg1", "hey")
+			if arg1 != "hello" {
+				t.Errorf(`expected "hello" for arg1, got "%s"`, arg1)
+			}
+			arg2 := GetArgOr(c, "arg2", "earth")
+			if arg2 != "earth" {
+				t.Errorf(`expected "earth" for arg2, got "%s"`, arg2)
+			}
+		}
+		// trying to straight get the second one should panic
+		{
+			func() {
+				defer func() {
+					gotPanicVal := recover()
+					expPanicVal := "no parsed value found for positional argument id 'arg2'"
+					if !reflect.DeepEqual(gotPanicVal, expPanicVal) {
+						t.Fatalf("panic values don't match\nexpected: %+#v\n     got: %+#v",
+							expPanicVal, gotPanicVal)
 					}
-
-					if !reflect.DeepEqual(gotValue, lu.expValue) {
-						t.Fatalf("tt[%d], tio[%d], lu[%d]: expected %v, got %v", ttIdx, tioIdx, luIdx, lu.expValue, gotValue)
+				}()
+				_ = GetArg[string](c, "arg2")
+			}()
+		}
+		// trying to cast the first one to anything but a string should panic
+		{
+			func() {
+				defer func() {
+					gotPanicVal := recover()
+					if gotPanicVal == nil {
+						t.Fatalf("didn't panic when trying to cast a string arg to an int")
 					}
-					if gotExists {
-						if !reflect.DeepEqual(gotParsed.Opt(lu.id), lu.expValue) {
-							t.Fatalf("tt[%d], tio[%d], lu[%d]: expected %v, got %v", ttIdx, tioIdx, luIdx, lu.expValue, gotValue)
-						}
-					}
-				}
-
-				for luIdx, lu := range tio.argLookups {
-					gotValue, gotExists := gotParsed.LookupArg(lu.id)
-					if gotExists != lu.expExists {
-						t.Fatalf("tt[%d], tio[%d], lu[%d]: expected exists %v, got %v", ttIdx, tioIdx, luIdx, lu.expExists, gotExists)
-					}
-
-					if !reflect.DeepEqual(gotValue, lu.expValue) {
-						t.Fatalf("tt[%d], tio[%d], lu[%d]: expected %v, got %v", ttIdx, tioIdx, luIdx, lu.expValue, gotValue)
-					}
-					if gotExists {
-						if !reflect.DeepEqual(gotParsed.Arg(lu.id), lu.expValue) {
-							t.Fatalf("tt[%d], tio[%d], lu[%d]: expected %v, got %v", ttIdx, tioIdx, luIdx, lu.expValue, gotValue)
-						}
-					}
-				}
-			})
+				}()
+				_ = GetArg[int](c, "arg1")
+			}()
 		}
 	}
 }
