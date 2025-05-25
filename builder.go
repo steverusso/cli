@@ -146,7 +146,8 @@ func (c CommandInfo) Subcmd(sc CommandInfo) CommandInfo {
 		panic(errMixingPosArgsAndSubcmds)
 	}
 
-	sc.Path = append([]string(nil), c.Path...)
+	sc.Path = make([]string, len(c.Path))
+	copy(sc.Path, c.Path)
 	sc.Path = append(sc.Path, sc.Name)
 
 	c.Subcmds = append(c.Subcmds, sc)
