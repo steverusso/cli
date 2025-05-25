@@ -43,7 +43,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"-b", "v2", "--aa", "--cc=v3"},
 					expected: Command{
 						Opts: []Input{
-							{ID: "dd", From: ParsedFrom{RawDefault: true}, RawValue: "v4", Value: "v4"},
+							{ID: "dd", From: ParsedFrom{Default: true}, RawValue: "v4", Value: "v4"},
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "v2", Value: "v2"},
 							{ID: "aa", From: ParsedFrom{Opt: "aa"}, RawValue: "", Value: true},
 							{ID: "cc", From: ParsedFrom{Opt: "cc"}, RawValue: "v3", Value: "v3"},
@@ -98,11 +98,11 @@ func TestParsing(t *testing.T) {
 					args: []string{},
 					expected: Command{
 						Opts: []Input{
-							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
-							{ID: "int", From: ParsedFrom{RawDefault: true}, RawValue: "123", Value: int(123)},
-							{ID: "uint", From: ParsedFrom{RawDefault: true}, RawValue: "456", Value: uint(456)},
-							{ID: "f32", From: ParsedFrom{RawDefault: true}, RawValue: "1.23", Value: float32(1.23)},
-							{ID: "f64", From: ParsedFrom{RawDefault: true}, RawValue: "4.56", Value: float64(4.56)},
+							{ID: "bool", From: ParsedFrom{Default: true}, RawValue: "true", Value: true},
+							{ID: "int", From: ParsedFrom{Default: true}, RawValue: "123", Value: int(123)},
+							{ID: "uint", From: ParsedFrom{Default: true}, RawValue: "456", Value: uint(456)},
+							{ID: "f32", From: ParsedFrom{Default: true}, RawValue: "1.23", Value: float32(1.23)},
+							{ID: "f64", From: ParsedFrom{Default: true}, RawValue: "4.56", Value: float64(4.56)},
 						},
 					},
 				},
@@ -116,11 +116,11 @@ func TestParsing(t *testing.T) {
 					},
 					expected: Command{
 						Opts: []Input{
-							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
-							{ID: "int", From: ParsedFrom{RawDefault: true}, RawValue: "123", Value: int(123)},
-							{ID: "uint", From: ParsedFrom{RawDefault: true}, RawValue: "456", Value: uint(456)},
-							{ID: "f32", From: ParsedFrom{RawDefault: true}, RawValue: "1.23", Value: float32(1.23)},
-							{ID: "f64", From: ParsedFrom{RawDefault: true}, RawValue: "4.56", Value: float64(4.56)},
+							{ID: "bool", From: ParsedFrom{Default: true}, RawValue: "true", Value: true},
+							{ID: "int", From: ParsedFrom{Default: true}, RawValue: "123", Value: int(123)},
+							{ID: "uint", From: ParsedFrom{Default: true}, RawValue: "456", Value: uint(456)},
+							{ID: "f32", From: ParsedFrom{Default: true}, RawValue: "1.23", Value: float32(1.23)},
+							{ID: "f64", From: ParsedFrom{Default: true}, RawValue: "4.56", Value: float64(4.56)},
 							{ID: "f32", From: ParsedFrom{Opt: "f32"}, RawValue: "1.2", Value: float32(1.2)},
 							{ID: "f64", From: ParsedFrom{Opt: "f64"}, RawValue: "4.5", Value: float64(4.5)},
 							{ID: "int", From: ParsedFrom{Opt: "int"}, RawValue: "12", Value: int(12)},
@@ -140,11 +140,11 @@ func TestParsing(t *testing.T) {
 					args: []string{"--f32", "7.89"},
 					expected: Command{
 						Opts: []Input{
-							{ID: "bool", From: ParsedFrom{RawDefault: true}, RawValue: "true", Value: true},
-							{ID: "int", From: ParsedFrom{RawDefault: true}, RawValue: "123", Value: int(123)},
-							{ID: "uint", From: ParsedFrom{RawDefault: true}, RawValue: "456", Value: uint(456)},
-							{ID: "f32", From: ParsedFrom{RawDefault: true}, RawValue: "1.23", Value: float32(1.23)},
-							{ID: "f64", From: ParsedFrom{RawDefault: true}, RawValue: "4.56", Value: float64(4.56)},
+							{ID: "bool", From: ParsedFrom{Default: true}, RawValue: "true", Value: true},
+							{ID: "int", From: ParsedFrom{Default: true}, RawValue: "123", Value: int(123)},
+							{ID: "uint", From: ParsedFrom{Default: true}, RawValue: "456", Value: uint(456)},
+							{ID: "f32", From: ParsedFrom{Default: true}, RawValue: "1.23", Value: float32(1.23)},
+							{ID: "f64", From: ParsedFrom{Default: true}, RawValue: "4.56", Value: float64(4.56)},
 							{ID: "bool", From: ParsedFrom{Env: "BOOL"}, RawValue: "false", Value: false},
 							{ID: "uint", From: ParsedFrom{Env: "UINT"}, RawValue: "45", Value: uint(45)},
 							{ID: "f32", From: ParsedFrom{Env: "F32"}, RawValue: "1.2", Value: float32(1.2)},
@@ -172,7 +172,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"A", "B", "C", "D", "E", "F"},
 					expected: Command{
 						Args: []Input{
-							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
+							{ID: "arg4", From: ParsedFrom{Default: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 							{ID: "arg2", From: ParsedFrom{Arg: 2}, RawValue: "B", Value: "B"},
 							{ID: "arg3", From: ParsedFrom{Arg: 3}, RawValue: "C", Value: "C"},
@@ -186,7 +186,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"A", "B"},
 					expected: Command{
 						Args: []Input{
-							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
+							{ID: "arg4", From: ParsedFrom{Default: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 							{ID: "arg2", From: ParsedFrom{Arg: 2}, RawValue: "B", Value: "B"},
 						},
@@ -198,7 +198,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"A"},
 					expected: Command{
 						Args: []Input{
-							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
+							{ID: "arg4", From: ParsedFrom{Default: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg2", From: ParsedFrom{Env: "ARG2"}, RawValue: "B", Value: "B"},
 							{ID: "arg4", From: ParsedFrom{Env: "ARG4"}, RawValue: "D", Value: "D"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
@@ -211,7 +211,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"A"},
 					expected: Command{
 						Args: []Input{
-							{ID: "arg4", From: ParsedFrom{RawDefault: true}, RawValue: "Z", Value: "Z"},
+							{ID: "arg4", From: ParsedFrom{Default: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg2", From: ParsedFrom{Env: "ARG2"}, RawValue: "B", Value: "B"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 						},

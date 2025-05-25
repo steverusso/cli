@@ -7,8 +7,6 @@ import (
 	"unicode"
 )
 
-type HelpGenerator = func(Input, *CommandInfo) string
-
 // DefaultHelpGenerator will use [DefaultShortHelp] if src is the short option,
 // or it'll use [DefaultFullHelp] if the src is the long option name.
 func DefaultHelpGenerator(src Input, c *CommandInfo) string {
@@ -25,64 +23,64 @@ const (
 
 func DefaultShortHelp(c *CommandInfo) string {
 	u := strings.Builder{}
-	u.Grow((len(c.opts) + len(c.args) + len(c.subcmds)) * 200)
+	u.Grow((len(c.Opts) + len(c.Args) + len(c.Subcmds)) * 200)
 
-	u.WriteString(strings.Join(c.path, " "))
+	u.WriteString(strings.Join(c.Path, " "))
 	u.WriteString(" - ")
-	u.WriteString(c.helpBlurb)
+	u.WriteString(c.HelpBlurb)
 
 	// build default usage line or range user provided ones
 	u.WriteString("\n\nusage:\n")
-	if len(c.helpUsage) == 0 {
+	if len(c.HelpUsage) == 0 {
 		u.WriteString("  ")
-		u.WriteString(c.path[len(c.path)-1])
+		u.WriteString(c.Path[len(c.Path)-1])
 		u.WriteString(" [options]")
 		switch {
-		case len(c.args) > 0:
+		case len(c.Args) > 0:
 			u.WriteString(" [arguments]")
-		case len(c.subcmds) > 0:
+		case len(c.Subcmds) > 0:
 			u.WriteString(" <command>")
 		}
 		u.WriteByte('\n')
 	} else {
-		for i := range c.helpUsage {
+		for i := range c.HelpUsage {
 			u.WriteString("  ")
-			u.WriteString(c.helpUsage[i])
+			u.WriteString(c.HelpUsage[i])
 			u.WriteByte('\n')
 		}
 	}
 
 	u.WriteString("\noptions:\n")
-	opts := slices.Clone(c.opts)
+	opts := slices.Clone(c.Opts)
 	slices.SortStableFunc(opts, func(a, b InputInfo) int {
-		nameToCmpA := a.nameShort
-		nameToCmpB := b.nameShort
-		if a.nameLong != "" {
-			nameToCmpA = a.nameLong
+		nameToCmpA := a.NameShort
+		nameToCmpB := b.NameShort
+		if a.NameLong != "" {
+			nameToCmpA = a.NameLong
 		}
-		if b.nameLong != "" {
-			nameToCmpB = b.nameLong
+		if b.NameLong != "" {
+			nameToCmpB = b.NameLong
 		}
 		return strings.Compare(nameToCmpA, nameToCmpB)
 	})
 
 	var optNameColWidth int
-	for i := range c.opts {
-		if l := len(c.opts[i].optUsgNameAndArg()); l > optNameColWidth && l <= helpShortMsgMaxFirstColLen {
+	for i := range c.Opts {
+		if l := len(c.Opts[i].optUsgNameAndArg()); l > optNameColWidth && l <= helpShortMsgMaxFirstColLen {
 			optNameColWidth = l
 		}
 	}
 	for _, o := range opts {
 		paddedNameAndArg := fmt.Sprintf("  %-*s", optNameColWidth, o.optUsgNameAndArg())
-		desc := o.helpBlurb
-		if o.isRequired {
+		desc := o.HelpBlurb
+		if o.IsRequired {
 			desc += " (required)"
 		}
-		if o.hasDefaultValue {
-			desc += fmt.Sprintf(" (default: %v)", o.rawDefaultValue)
+		if o.HasStrDefault {
+			desc += fmt.Sprintf(" (default: %v)", o.StrDefault)
 		}
-		if o.env != "" {
-			desc += " [$" + o.env + "]"
+		if o.EnvVar != "" {
+			desc += " [$" + o.EnvVar + "]"
 		}
 		content := paddedNameAndArg
 		if len(paddedNameAndArg) > helpShortMsgMaxFirstColLen {
@@ -95,40 +93,40 @@ func DefaultShortHelp(c *CommandInfo) string {
 		u.WriteByte('\n')
 	}
 
-	if len(c.args) > 0 {
+	if len(c.Args) > 0 {
 		u.WriteString("\narguments:\n")
 
 		var argNameColWidth int
-		for i := range c.args {
-			argName := c.args[i].id
-			if c.args[i].valueName != "" {
-				argName = c.args[i].valueName
+		for i := range c.Args {
+			argName := c.Args[i].ID
+			if c.Args[i].ValueName != "" {
+				argName = c.Args[i].ValueName
 			}
 			if l := len(argName); l > argNameColWidth && l <= helpShortMsgMaxFirstColLen {
 				argNameColWidth = l
 			}
 		}
 		argNameColWidth += 2
-		for _, a := range c.args {
-			argName := a.id
-			if a.valueName != "" {
-				argName = a.valueName
+		for _, a := range c.Args {
+			argName := a.ID
+			if a.ValueName != "" {
+				argName = a.ValueName
 			}
-			if a.isRequired {
+			if a.IsRequired {
 				argName = "<" + argName + ">"
 			} else {
 				argName = "[" + argName + "]"
 			}
 			paddedNameAndArg := fmt.Sprintf("  %-*s", argNameColWidth, argName)
-			desc := a.helpBlurb
-			if a.isRequired {
+			desc := a.HelpBlurb
+			if a.IsRequired {
 				desc += " (required)"
 			}
-			if a.hasDefaultValue {
-				desc += fmt.Sprintf(" (default: %v)", a.rawDefaultValue)
+			if a.HasStrDefault {
+				desc += fmt.Sprintf(" (default: %v)", a.StrDefault)
 			}
-			if a.env != "" {
-				desc += " [$" + a.env + "]"
+			if a.EnvVar != "" {
+				desc += " [$" + a.EnvVar + "]"
 			}
 			content := paddedNameAndArg
 			if len(paddedNameAndArg) > helpShortMsgMaxFirstColLen {
@@ -142,17 +140,17 @@ func DefaultShortHelp(c *CommandInfo) string {
 		}
 	}
 
-	if len(c.subcmds) > 0 {
+	if len(c.Subcmds) > 0 {
 		var maxCmdNameLen int
-		for i := range c.subcmds {
-			if n := len(c.subcmds[i].name); n > maxCmdNameLen {
+		for i := range c.Subcmds {
+			if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
 				maxCmdNameLen = n
 			}
 		}
 
 		u.WriteString("\ncommands:\n")
-		for i := range c.subcmds {
-			fmt.Fprintf(&u, "   %-*s   %s\n", maxCmdNameLen, c.subcmds[i].name, c.subcmds[i].helpBlurb)
+		for i := range c.Subcmds {
+			fmt.Fprintf(&u, "   %-*s   %s\n", maxCmdNameLen, c.Subcmds[i].Name, c.Subcmds[i].HelpBlurb)
 		}
 	}
 
@@ -161,71 +159,71 @@ func DefaultShortHelp(c *CommandInfo) string {
 
 func DefaultFullHelp(c *CommandInfo) string {
 	u := strings.Builder{}
-	u.Grow((len(c.opts) + len(c.args) + len(c.subcmds)) * 200)
+	u.Grow((len(c.Opts) + len(c.Args) + len(c.Subcmds)) * 200)
 
-	u.WriteString(strings.Join(c.path, " "))
+	u.WriteString(strings.Join(c.Path, " "))
 	u.WriteString(" - ")
-	u.WriteString(c.helpBlurb)
+	u.WriteString(c.HelpBlurb)
 
-	if c.helpExtra != "" {
+	if c.HelpExtra != "" {
 		u.WriteString("\n\noverview:\n")
-		u.WriteString("  " + wrapBlurb(c.helpExtra, 2, helpMsgTextWidth))
+		u.WriteString("  " + wrapBlurb(c.HelpExtra, 2, helpMsgTextWidth))
 	}
 
 	// build default usage line or range user provided ones
 	u.WriteString("\n\nusage:\n")
-	if len(c.helpUsage) == 0 {
+	if len(c.HelpUsage) == 0 {
 		u.WriteString("  ")
-		u.WriteString(c.path[len(c.path)-1])
+		u.WriteString(c.Path[len(c.Path)-1])
 		u.WriteString(" [options]")
 		switch {
-		case len(c.args) > 0:
+		case len(c.Args) > 0:
 			u.WriteString(" [arguments]")
-		case len(c.subcmds) > 0:
+		case len(c.Subcmds) > 0:
 			u.WriteString(" <command>")
 		}
 		u.WriteByte('\n')
 	} else {
-		for i := range c.helpUsage {
+		for i := range c.HelpUsage {
 			u.WriteString("  ")
-			u.WriteString(c.helpUsage[i])
+			u.WriteString(c.HelpUsage[i])
 			u.WriteByte('\n')
 		}
 	}
 
 	u.WriteString("\noptions:\n")
-	opts := slices.Clone(c.opts)
+	opts := slices.Clone(c.Opts)
 	slices.SortStableFunc(opts, func(a, b InputInfo) int {
-		nameToCmpA := a.nameShort
-		nameToCmpB := b.nameShort
-		if a.nameLong != "" {
-			nameToCmpA = a.nameLong
+		nameToCmpA := a.NameShort
+		nameToCmpB := b.NameShort
+		if a.NameLong != "" {
+			nameToCmpA = a.NameLong
 		}
-		if b.nameLong != "" {
-			nameToCmpB = b.nameLong
+		if b.NameLong != "" {
+			nameToCmpB = b.NameLong
 		}
 		return strings.Compare(nameToCmpA, nameToCmpB)
 	})
 	for i, o := range opts {
 		var extra string
-		if o.hasDefaultValue {
-			extra += fmt.Sprintf("\n      [default: %v]", o.rawDefaultValue)
+		if o.HasStrDefault {
+			extra += fmt.Sprintf("\n      [default: %v]", o.StrDefault)
 		}
-		if o.env != "" {
-			extra += "\n      [env: " + o.env + "]"
+		if o.EnvVar != "" {
+			extra += "\n      [env: " + o.EnvVar + "]"
 		}
 
 		var usgNamesAndArg string
 		{
-			if o.nameShort != "" {
-				usgNamesAndArg += "-" + o.nameShort
+			if o.NameShort != "" {
+				usgNamesAndArg += "-" + o.NameShort
 			}
 
-			if o.nameLong != "" {
-				if o.nameShort != "" {
+			if o.NameLong != "" {
+				if o.NameShort != "" {
 					usgNamesAndArg += ", "
 				}
-				usgNamesAndArg += "--" + o.nameLong
+				usgNamesAndArg += "--" + o.NameLong
 			}
 
 			if an := o.optUsgArgName(); an != "" {
@@ -234,16 +232,16 @@ func DefaultFullHelp(c *CommandInfo) string {
 		}
 
 		content := "  " + usgNamesAndArg
-		if o.isRequired {
+		if o.IsRequired {
 			content += "   (required)"
 		}
-		if o.helpBlurb != "" {
-			content += "\n      " + wrapBlurb(o.helpBlurb, 6, helpMsgTextWidth)
+		if o.HelpBlurb != "" {
+			content += "\n      " + wrapBlurb(o.HelpBlurb, 6, helpMsgTextWidth)
 		}
 		if extra != "" {
 			content += "\n" + extra
 		}
-		if i < len(c.opts)-1 {
+		if i < len(c.Opts)-1 {
 			content += "\n"
 		}
 
@@ -251,37 +249,37 @@ func DefaultFullHelp(c *CommandInfo) string {
 		u.WriteByte('\n')
 	}
 
-	if len(c.args) > 0 {
+	if len(c.Args) > 0 {
 		u.WriteString("\narguments:\n")
-		for i, a := range c.args {
+		for i, a := range c.Args {
 			var extra string
-			if a.hasDefaultValue {
-				extra += fmt.Sprintf("\n      [default: %v]", a.rawDefaultValue)
+			if a.HasStrDefault {
+				extra += fmt.Sprintf("\n      [default: %v]", a.StrDefault)
 			}
-			if a.env != "" {
-				extra += "\n      [env: " + a.env + "]"
+			if a.EnvVar != "" {
+				extra += "\n      [env: " + a.EnvVar + "]"
 			}
 
-			argName := a.id
-			if a.valueName != "" {
-				argName = a.valueName
+			argName := a.ID
+			if a.ValueName != "" {
+				argName = a.ValueName
 			}
-			if a.isRequired {
+			if a.IsRequired {
 				argName = "<" + argName + ">"
 			} else {
 				argName = "[" + argName + "]"
 			}
 
 			content := "  " + argName
-			if a.isRequired {
+			if a.IsRequired {
 				content += "   (required)"
 			}
 			content += "\n"
-			content += "      " + wrapBlurb(a.helpBlurb, 6, helpMsgTextWidth)
+			content += "      " + wrapBlurb(a.HelpBlurb, 6, helpMsgTextWidth)
 			if extra != "" {
 				content += "\n" + extra
 			}
-			if i < len(c.args)-1 {
+			if i < len(c.Args)-1 {
 				content += "\n"
 			}
 
@@ -290,17 +288,17 @@ func DefaultFullHelp(c *CommandInfo) string {
 		}
 	}
 
-	if len(c.subcmds) > 0 {
+	if len(c.Subcmds) > 0 {
 		var maxCmdNameLen int
-		for i := range c.subcmds {
-			if n := len(c.subcmds[i].name); n > maxCmdNameLen {
+		for i := range c.Subcmds {
+			if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
 				maxCmdNameLen = n
 			}
 		}
 
 		u.WriteString("\ncommands:\n")
-		for i := range c.subcmds {
-			fmt.Fprintf(&u, "   %-*s   %s\n", maxCmdNameLen, c.subcmds[i].name, c.subcmds[i].helpBlurb)
+		for i := range c.Subcmds {
+			fmt.Fprintf(&u, "   %-*s   %s\n", maxCmdNameLen, c.Subcmds[i].Name, c.Subcmds[i].HelpBlurb)
 		}
 	}
 
@@ -309,19 +307,19 @@ func DefaultFullHelp(c *CommandInfo) string {
 
 func (o *InputInfo) optUsgNameAndArg() string {
 	var s string
-	if o.nameShort != "" {
-		s += "-" + o.nameShort
+	if o.NameShort != "" {
+		s += "-" + o.NameShort
 	} else {
 		s += "   "
 	}
 
-	if o.nameLong != "" {
-		if o.nameShort != "" {
+	if o.NameLong != "" {
+		if o.NameShort != "" {
 			s += ", "
 		} else {
 			s += " "
 		}
-		s += "--" + o.nameLong
+		s += "--" + o.NameLong
 	}
 
 	if an := o.optUsgArgName(); an != "" {
@@ -334,11 +332,11 @@ func (o *InputInfo) optUsgNameAndArg() string {
 // example, if there's a string option named `file`, the usage might look something like
 // `--file <arg>` where "<arg>" is the usage argument name text.
 func (o *InputInfo) optUsgArgName() string {
-	if o.isBoolOpt {
+	if o.IsBoolOpt {
 		return ""
 	}
-	if o.valueName != "" {
-		return "<" + o.valueName + ">"
+	if o.ValueName != "" {
+		return "<" + o.ValueName + ">"
 	}
 	return "<arg>"
 }

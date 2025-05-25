@@ -94,37 +94,39 @@ import (
 )
 
 type CommandInfo struct {
-	name      string
-	path      []string
-	helpUsage []string
-	helpBlurb string
-	helpExtra string
-	opts      []InputInfo
-	args      []InputInfo
-	subcmds   []CommandInfo
+	Name      string
+	Path      []string
+	HelpUsage []string
+	HelpBlurb string
+	HelpExtra string
+	Opts      []InputInfo
+	Args      []InputInfo
+	Subcmds   []CommandInfo
 
 	isPrepped bool
 }
 
 type InputInfo struct {
-	id         string
-	nameShort  string
-	nameLong   string
-	helpBlurb  string
-	env        string
-	isBoolOpt  bool
-	isRequired bool
+	ID         string
+	NameShort  string
+	NameLong   string
+	HelpBlurb  string
+	EnvVar     string
+	IsBoolOpt  bool
+	IsRequired bool
 
-	rawDefaultValue string
-	hasDefaultValue bool
+	StrDefault    string
+	HasStrDefault bool
 
-	valueName   string
-	valueParser ValueParser
+	ValueName   string
+	ValueParser ValueParser
 
-	helpGen HelpGenerator
+	HelpGen HelpGenerator
 }
 
 type ValueParser = func(string) (any, error)
+
+type HelpGenerator = func(Input, *CommandInfo) string
 
 type Command struct {
 	Name    string
@@ -142,10 +144,10 @@ type Input struct {
 }
 
 type ParsedFrom struct {
-	Env        string // the env var's name
-	Opt        string // the provided option name
-	Arg        int    // the position starting from 1
-	RawDefault bool
+	Env     string // the env var's name
+	Opt     string // the provided option name
+	Arg     int    // the position starting from 1
+	Default bool
 }
 
 // LookupOpt looks for an option value with the given id in the given Command and converts
@@ -268,9 +270,9 @@ func (h HelpRequestError) Error() string {
 }
 
 func lookupOptionByShortName(in *CommandInfo, shortName string) *InputInfo {
-	for i := range in.opts {
-		if in.opts[i].nameShort == shortName {
-			return &in.opts[i]
+	for i := range in.Opts {
+		if in.Opts[i].NameShort == shortName {
+			return &in.Opts[i]
 		}
 	}
 	return nil
@@ -296,45 +298,45 @@ func hasArg(c *Command, id string) bool {
 
 func parse(c *CommandInfo, p *Command, args []string) error {
 	// set any defaults
-	for i := range c.opts {
-		if c.opts[i].hasDefaultValue {
-			dv := c.opts[i].rawDefaultValue
-			pi, err := newInput(&c.opts[i], ParsedFrom{RawDefault: true}, dv)
+	for i := range c.Opts {
+		if c.Opts[i].HasStrDefault {
+			dv := c.Opts[i].StrDefault
+			pi, err := newInput(&c.Opts[i], ParsedFrom{Default: true}, dv)
 			if err != nil {
-				return fmt.Errorf("parsing default value '%s' for option '%s': %w", dv, c.opts[i].id, err)
+				return fmt.Errorf("parsing default value '%s' for option '%s': %w", dv, c.Opts[i].ID, err)
 			}
 			p.Opts = append(p.Opts, pi)
 		}
 	}
-	for i := range c.args {
-		if c.args[i].hasDefaultValue {
-			dv := c.args[i].rawDefaultValue
-			pi, err := newInput(&c.args[i], ParsedFrom{RawDefault: true}, dv)
+	for i := range c.Args {
+		if c.Args[i].HasStrDefault {
+			dv := c.Args[i].StrDefault
+			pi, err := newInput(&c.Args[i], ParsedFrom{Default: true}, dv)
 			if err != nil {
-				return fmt.Errorf("parsing default value '%s' for arg '%s': %w", dv, c.args[i].id, err)
+				return fmt.Errorf("parsing default value '%s' for arg '%s': %w", dv, c.Args[i].ID, err)
 			}
 			p.Args = append(p.Args, pi)
 		}
 	}
 
 	// grab any envs
-	for i := range c.opts {
-		if c.opts[i].env != "" {
-			if v, ok := os.LookupEnv(c.opts[i].env); ok {
-				pi, err := newInput(&c.opts[i], ParsedFrom{Env: c.opts[i].env}, v)
+	for i := range c.Opts {
+		if c.Opts[i].EnvVar != "" {
+			if v, ok := os.LookupEnv(c.Opts[i].EnvVar); ok {
+				pi, err := newInput(&c.Opts[i], ParsedFrom{Env: c.Opts[i].EnvVar}, v)
 				if err != nil {
-					return fmt.Errorf("using env var '%s': %w", c.opts[i].env, err)
+					return fmt.Errorf("using env var '%s': %w", c.Opts[i].EnvVar, err)
 				}
 				p.Opts = append(p.Opts, pi)
 			}
 		}
 	}
-	for i := range c.args {
-		if c.args[i].env != "" {
-			if v, ok := os.LookupEnv(c.args[i].env); ok {
-				pi, err := newInput(&c.args[i], ParsedFrom{Env: c.args[i].env}, v)
+	for i := range c.Args {
+		if c.Args[i].EnvVar != "" {
+			if v, ok := os.LookupEnv(c.Args[i].EnvVar); ok {
+				pi, err := newInput(&c.Args[i], ParsedFrom{Env: c.Args[i].EnvVar}, v)
 				if err != nil {
-					return fmt.Errorf("using env var '%s': %w", c.args[i].env, err)
+					return fmt.Errorf("using env var '%s': %w", c.Args[i].EnvVar, err)
 				}
 				p.Args = append(p.Args, pi)
 			}
@@ -379,7 +381,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				// character of the argument, then we'll take the next argument.
 				var rawValue string
 				var skipRest bool
-				if !optInfo.isBoolOpt {
+				if !optInfo.IsBoolOpt {
 					if charIdx == len(arg)-1 {
 						i++
 						if i < len(args) {
@@ -398,9 +400,9 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 					return fmt.Errorf("parsing option '%s': %w", optName, err)
 				}
 
-				if optInfo.helpGen != nil {
+				if optInfo.HelpGen != nil {
 					return HelpRequestError{
-						HelpMsg: optInfo.helpGen(pi, c),
+						HelpMsg: optInfo.HelpGen(pi, c),
 					}
 				}
 
@@ -435,9 +437,9 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		}
 
 		var optInfo *InputInfo
-		for i := range c.opts {
-			if name == c.opts[i].nameShort || name == c.opts[i].nameLong {
-				optInfo = &c.opts[i]
+		for i := range c.Opts {
+			if name == c.Opts[i].NameShort || name == c.Opts[i].NameLong {
+				optInfo = &c.Opts[i]
 				break
 			}
 		}
@@ -448,7 +450,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		var rawValue string
 		if eqIdx != -1 {
 			rawValue = arg[eqIdx+1:]
-		} else if !optInfo.isBoolOpt {
+		} else if !optInfo.IsBoolOpt {
 			i++
 			if i < len(args) {
 				rawValue = args[i]
@@ -462,9 +464,9 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			return fmt.Errorf("parsing option '%s': %w", name, err)
 		}
 
-		if optInfo.helpGen != nil {
+		if optInfo.HelpGen != nil {
 			return HelpRequestError{
-				HelpMsg: optInfo.helpGen(pi, c),
+				HelpMsg: optInfo.HelpGen(pi, c),
 			}
 		}
 
@@ -475,14 +477,14 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 
 	// check that all required options were provided
 	var missing []string
-	for i := range c.opts {
-		if c.opts[i].isRequired {
-			if !hasOpt(p, c.opts[i].id) {
+	for i := range c.Opts {
+		if c.Opts[i].IsRequired {
+			if !hasOpt(p, c.Opts[i].ID) {
 				var name string
-				if c.opts[i].nameLong != "" {
-					name = "--" + c.opts[i].nameLong
+				if c.Opts[i].NameLong != "" {
+					name = "--" + c.Opts[i].NameLong
 				} else {
-					name = "-" + c.opts[i].nameShort
+					name = "-" + c.Opts[i].NameShort
 				}
 				missing = append(missing, name)
 			}
@@ -494,29 +496,29 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		// If we are parsing positional arguments instead of subcommands, we can just
 		// return this error right now. Otherwise we have to wait to see if a subcommand
 		// requests help.
-		if len(c.subcmds) == 0 {
+		if len(c.Subcmds) == 0 {
 			return errMissingOpts
 		}
 	}
 
 	rest := args[i:]
-	if len(c.subcmds) == 0 {
-		for i = 0; i < len(c.args); i++ {
+	if len(c.Subcmds) == 0 {
+		for i = 0; i < len(c.Args); i++ {
 			if i < len(rest) {
 				rawArg := rest[i]
-				pi, err := newInput(&c.args[i], ParsedFrom{Arg: i + 1}, rawArg)
+				pi, err := newInput(&c.Args[i], ParsedFrom{Arg: i + 1}, rawArg)
 				if err != nil {
 					return fmt.Errorf("parsing positional argument #%d '%s': %w", i+1, rawArg, err)
 				}
 				p.Args = append(p.Args, pi)
-			} else if c.args[i].isRequired {
+			} else if c.Args[i].IsRequired {
 				var missing []string
-				for ; i < len(c.args); i++ {
-					if !c.args[i].isRequired {
+				for ; i < len(c.Args); i++ {
+					if !c.Args[i].IsRequired {
 						break
 					}
-					if !hasArg(p, c.args[i].id) {
-						missing = append(missing, c.args[i].valueName)
+					if !hasArg(p, c.Args[i].ID) {
+						missing = append(missing, c.Args[i].ValueName)
 					}
 				}
 				if len(missing) > 0 {
@@ -542,9 +544,9 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 	}
 
 	var subcmdInfo *CommandInfo
-	for i := range c.subcmds {
-		if c.subcmds[i].name == p.Subcmd.Name {
-			subcmdInfo = &c.subcmds[i]
+	for i := range c.Subcmds {
+		if c.Subcmds[i].Name == p.Subcmd.Name {
+			subcmdInfo = &c.Subcmds[i]
 			break
 		}
 	}
@@ -570,11 +572,11 @@ func newInput(info *InputInfo, src ParsedFrom, rawValue string) (Input, error) {
 
 	switch {
 	// If we have a value parser, use that.
-	case info.valueParser != nil:
-		val, err = info.valueParser(rawValue)
+	case info.ValueParser != nil:
+		val, err = info.ValueParser(rawValue)
 	// If we don't have a value parser but we know it's a boolean option, use the
 	// default boolean parser.
-	case info.isBoolOpt:
+	case info.IsBoolOpt:
 		if rawValue != "" {
 			val, err = ParseBool(rawValue)
 		} else {
@@ -590,7 +592,7 @@ func newInput(info *InputInfo, src ParsedFrom, rawValue string) (Input, error) {
 	}
 
 	return Input{
-		ID:       info.id,
+		ID:       info.ID,
 		From:     src,
 		RawValue: rawValue,
 		Value:    val,

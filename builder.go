@@ -5,7 +5,7 @@ import "strings"
 var DefaultHelpInput = NewBoolOpt("help").
 	Short('h').
 	Help("Show this help message and exit.").
-	HelpGen(DefaultHelpGenerator)
+	WithHelpGen(DefaultHelpGenerator)
 
 var (
 	errMixingPosArgsAndSubcmds = "commands cannot have both positional args and subcommands"
@@ -20,8 +20,8 @@ func (c *CommandInfo) prepareAndValidate() {
 	// Add the default help option here as long as this
 	// command doesn't already have a help option.
 	var hasHelpOpt bool
-	for i := range c.opts {
-		if c.opts[i].helpGen != nil {
+	for i := range c.Opts {
+		if c.Opts[i].HelpGen != nil {
 			hasHelpOpt = true
 			break
 		}
@@ -31,48 +31,48 @@ func (c *CommandInfo) prepareAndValidate() {
 	}
 
 	// option assertions
-	for i := 0; i < len(c.opts)-1; i++ {
-		for z := i + 1; z < len(c.opts); z++ {
+	for i := 0; i < len(c.Opts)-1; i++ {
+		for z := i + 1; z < len(c.Opts); z++ {
 			// assert there are no duplicate input ids
-			if c.opts[i].id == c.opts[z].id {
-				panic("command '" + strings.Join(c.path, " ") +
-					"' contains duplicate option ids '" + c.opts[i].id + "'")
+			if c.Opts[i].ID == c.Opts[z].ID {
+				panic("command '" + strings.Join(c.Path, " ") +
+					"' contains duplicate option ids '" + c.Opts[i].ID + "'")
 			}
 
 			// assert there are no duplicate long or short option names
-			if c.opts[i].nameShort != "" && c.opts[i].nameShort == c.opts[z].nameShort {
-				panic("command '" + strings.Join(c.path, " ") +
-					"' contains duplicate option short name '" + c.opts[i].nameShort + "'")
+			if c.Opts[i].NameShort != "" && c.Opts[i].NameShort == c.Opts[z].NameShort {
+				panic("command '" + strings.Join(c.Path, " ") +
+					"' contains duplicate option short name '" + c.Opts[i].NameShort + "'")
 			}
-			if c.opts[i].nameLong != "" && c.opts[i].nameLong == c.opts[z].nameLong {
-				panic("command '" + strings.Join(c.path, " ") +
-					"' contains duplicate option long name '" + c.opts[i].nameLong + "'")
+			if c.Opts[i].NameLong != "" && c.Opts[i].NameLong == c.Opts[z].NameLong {
+				panic("command '" + strings.Join(c.Path, " ") +
+					"' contains duplicate option long name '" + c.Opts[i].NameLong + "'")
 			}
 		}
 	}
 
 	// assert there are no duplicate arg ids
-	for i := 0; i < len(c.args)-1; i++ {
-		for z := i + 1; z < len(c.args); z++ {
-			if c.args[i].id == c.args[z].id {
-				panic("command '" + strings.Join(c.path, " ") +
-					"' contains duplicate argument ids '" + c.args[i].id + "'")
+	for i := 0; i < len(c.Args)-1; i++ {
+		for z := i + 1; z < len(c.Args); z++ {
+			if c.Args[i].ID == c.Args[z].ID {
+				panic("command '" + strings.Join(c.Path, " ") +
+					"' contains duplicate argument ids '" + c.Args[i].ID + "'")
 			}
 		}
 	}
 
-	// subcommand names must be unique across subcmds
-	for i := 0; i < len(c.subcmds)-1; i++ {
-		for z := i + 1; z < len(c.subcmds); z++ {
-			if c.subcmds[i].name == c.subcmds[z].name {
-				panic("command '" + strings.Join(c.path, " ") +
-					"' contains duplicate subcommand name '" + c.subcmds[i].name + "'")
+	// subcommand names must be unique across Subcmds
+	for i := 0; i < len(c.Subcmds)-1; i++ {
+		for z := i + 1; z < len(c.Subcmds); z++ {
+			if c.Subcmds[i].Name == c.Subcmds[z].Name {
+				panic("command '" + strings.Join(c.Path, " ") +
+					"' contains duplicate subcommand name '" + c.Subcmds[i].Name + "'")
 			}
 		}
 	}
 
-	for i := range c.subcmds {
-		c.subcmds[i].prepareAndValidate()
+	for i := range c.Subcmds {
+		c.Subcmds[i].prepareAndValidate()
 	}
 }
 
@@ -89,43 +89,43 @@ func NewCmd(name string) CommandInfo {
 	}
 
 	return CommandInfo{
-		name: name,
-		path: []string{name},
-		opts: make([]InputInfo, 0, 5),
+		Name: name,
+		Path: []string{name},
+		Opts: make([]InputInfo, 0, 5),
 	}
 }
 
 func (c CommandInfo) Help(blurb string) CommandInfo {
-	c.helpBlurb = blurb
+	c.HelpBlurb = blurb
 	return c
 }
 
-// HelpExtra adds an "overview" section to the Command's help message. This is typically
+// ExtraHelp adds an "overview" section to the Command's help message. This is typically
 // for longer-form content that wouldn't fit well within the 1-2 sentence "blurb."
-func (c CommandInfo) HelpExtra(extra string) CommandInfo {
-	c.helpExtra = extra
+func (c CommandInfo) ExtraHelp(extra string) CommandInfo {
+	c.HelpExtra = extra
 	return c
 }
 
-// HelpUsage overrides the default "usage" lines in the command's help message. These are
+// Usage overrides the default "usage" lines in the command's help message. These are
 // intended to show the user some different ways to invoke this command using whatever
 // combinations of options / arguments / subcommands.
-func (c CommandInfo) HelpUsage(lines ...string) CommandInfo {
-	c.helpUsage = append(c.helpUsage, lines...)
+func (c CommandInfo) Usage(lines ...string) CommandInfo {
+	c.HelpUsage = append(c.HelpUsage, lines...)
 	return c
 }
 
 func (c CommandInfo) Opt(o InputInfo) CommandInfo {
 	// Assert `o` is not a positional arg by making sure it has at least one option name.
-	if o.nameShort == "" && o.nameLong == "" {
+	if o.NameShort == "" && o.NameLong == "" {
 		panic(errEmptyOptNames)
 	}
-	c.opts = append(c.opts, o)
+	c.Opts = append(c.Opts, o)
 	return c
 }
 
 func (c CommandInfo) Arg(a InputInfo) CommandInfo {
-	if len(c.subcmds) > 0 {
+	if len(c.Subcmds) > 0 {
 		panic(errMixingPosArgsAndSubcmds)
 	}
 	// Assert the given input is not an option.
@@ -133,23 +133,23 @@ func (c CommandInfo) Arg(a InputInfo) CommandInfo {
 		panic(errOptAsPosArg)
 	}
 	// Ensure a required positional arg isn't coming after an optional one.
-	if a.isRequired && len(c.args) > 0 && !c.args[len(c.args)-1].isRequired {
+	if a.IsRequired && len(c.Args) > 0 && !c.Args[len(c.Args)-1].IsRequired {
 		panic(errReqArgAfterOptional)
 	}
 
-	c.args = append(c.args, a)
+	c.Args = append(c.Args, a)
 	return c
 }
 
 func (c CommandInfo) Subcmd(sc CommandInfo) CommandInfo {
-	if len(c.args) > 0 {
+	if len(c.Args) > 0 {
 		panic(errMixingPosArgsAndSubcmds)
 	}
 
-	sc.path = append([]string(nil), c.path...)
-	sc.path = append(sc.path, sc.name)
+	sc.Path = append([]string(nil), c.Path...)
+	sc.Path = append(sc.Path, sc.Name)
 
-	c.subcmds = append(c.subcmds, sc)
+	c.Subcmds = append(c.Subcmds, sc)
 	return c
 }
 
@@ -163,9 +163,9 @@ func NewOpt(id string) InputInfo {
 		panic(errEmptyInputID)
 	}
 	if len(id) == 1 {
-		return InputInfo{id: id}.ShortOnly(id[0])
+		return InputInfo{ID: id}.ShortOnly(id[0])
 	}
-	return InputInfo{id: id}.Long(id)
+	return InputInfo{ID: id}.Long(id)
 }
 
 // NewBoolOpt returns a new boolean option. If no value is provided to this option when
@@ -174,7 +174,7 @@ func NewOpt(id string) InputInfo {
 // be ignored.
 func NewBoolOpt(id string) InputInfo {
 	o := NewOpt(id)
-	o.isBoolOpt = true
+	o.IsBoolOpt = true
 	return o
 }
 
@@ -199,26 +199,26 @@ func NewFloat64Opt(id string) InputInfo {
 }
 
 // NewArg returns a new positional argument input. By default, the arg's display name will
-// be the provided id, but this can be overidden with [InputInfo.ValueName] method.
+// be the provided id, but this can be overidden with [InputInfo.WithValueName] method.
 func NewArg(id string) InputInfo {
 	if id == "" {
 		panic(errEmptyInputID)
 	}
-	return InputInfo{id: id, valueName: id}
+	return InputInfo{ID: id, ValueName: id}
 }
 
 // WithParser sets the InputInfo's parser to the given [ValueParser]. This will override any
 // parser that has been set up until this point. Providing nil as the parser will restore
 // the default behavior of just using the plain string value when this InputInfo is parsed.
 func (in InputInfo) WithParser(vp ValueParser) InputInfo {
-	in.valueParser = vp
+	in.ValueParser = vp
 	return in
 }
 
 // Short sets this option's short name to the given character. In order to create an
 // option that has a short name but no long name, see [InputInfo.ShortOnly].
 func (in InputInfo) Short(c byte) InputInfo {
-	in.nameShort = string(c)
+	in.NameShort = string(c)
 	return in
 }
 
@@ -226,49 +226,49 @@ func (in InputInfo) Short(c byte) InputInfo {
 // name it may have had at this point. In order to create an option that has both a short
 // and long name, see [InputInfo.Short]. Use [InputInfo.Long] to add a long name back.
 func (in InputInfo) ShortOnly(c byte) InputInfo {
-	in.nameLong = ""
+	in.NameLong = ""
 	return in.Short(c)
 }
 
 func (in InputInfo) Long(name string) InputInfo {
-	in.nameLong = name
+	in.NameLong = name
 	return in
 }
 
 func (in InputInfo) Help(blurb string) InputInfo {
-	in.helpBlurb = blurb
+	in.HelpBlurb = blurb
 	return in
 }
 
 func (in InputInfo) Env(e string) InputInfo {
-	in.env = e
+	in.EnvVar = e
 	return in
 }
 
 func (in InputInfo) Required() InputInfo {
-	in.isRequired = true
+	in.IsRequired = true
 	return in
 }
 
-// ValueName sets the display name of this InputInfo's argument value. For non-boolean
+// WithValueName sets the display name of this InputInfo's argument value. For non-boolean
 // options, it's the argument of the option. For positional arguments, it's the argument
 // name itself.
-func (in InputInfo) ValueName(name string) InputInfo {
-	in.valueName = name
+func (in InputInfo) WithValueName(name string) InputInfo {
+	in.ValueName = name
 	return in
 }
 
 func (in InputInfo) Default(v string) InputInfo {
-	in.rawDefaultValue = v
-	in.hasDefaultValue = true
+	in.StrDefault = v
+	in.HasStrDefault = true
 	return in
 }
 
-func (in InputInfo) HelpGen(hg HelpGenerator) InputInfo {
-	in.helpGen = hg
+func (in InputInfo) WithHelpGen(hg HelpGenerator) InputInfo {
+	in.HelpGen = hg
 	return in
 }
 
 func (in *InputInfo) isOption() bool {
-	return in.nameShort != "" || in.nameLong != ""
+	return in.NameShort != "" || in.NameLong != ""
 }

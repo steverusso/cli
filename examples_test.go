@@ -39,10 +39,10 @@ func ExampleInputInfo_ShortOnly() {
 	// unknown option '--flag'
 }
 
-func ExampleInputInfo_ValueName_option() {
+func ExampleInputInfo_WithValueName_option() {
 	in := cli.NewCmd("example").
 		Help("example program").
-		Opt(cli.NewOpt("aa").ValueName("str").Help("it says '<str>' above instead of '<arg>'"))
+		Opt(cli.NewOpt("aa").WithValueName("str").Help("it says '<str>' above instead of '<arg>'"))
 
 	_, err := in.Parse("--help")
 	fmt.Println(err)
@@ -60,10 +60,10 @@ func ExampleInputInfo_ValueName_option() {
 	//       Show this help message and exit.
 }
 
-func ExampleInputInfo_ValueName_positionalArgument() {
+func ExampleInputInfo_WithValueName_positionalArgument() {
 	in := cli.NewCmd("example").
 		Help("example program").
-		Arg(cli.NewArg("aa").ValueName("filename").Help("it says '[filename]' above instead of '[aa]'"))
+		Arg(cli.NewArg("aa").WithValueName("filename").Help("it says '[filename]' above instead of '[aa]'"))
 
 	_, err := in.Parse("--help")
 	fmt.Println(err)
@@ -166,10 +166,10 @@ func ExampleNewFileParser() {
 	// parsing option 'i': open path_that_doesnt_exist: no such file or directory
 }
 
-func ExampleCommandInfo_HelpExtra() {
+func ExampleCommandInfo_ExtraHelp() {
 	in := cli.NewCmd("example").
 		Help("an example command").
-		HelpExtra("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
+		ExtraHelp("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
 
 	_, err := in.Parse("--help")
 	fmt.Println(err)
@@ -189,10 +189,10 @@ func ExampleCommandInfo_HelpExtra() {
 	//       Show this help message and exit.
 }
 
-func ExampleCommandInfo_HelpUsage() {
+func ExampleCommandInfo_Usage() {
 	in := cli.NewCmd("example").
 		Help("an example command").
-		HelpUsage(
+		Usage(
 			"example [--aa <arg>]",
 			"example [-h]",
 		).
@@ -225,7 +225,7 @@ func ExampleDefaultFullHelp() {
 		Arg(cli.NewArg("cc").Help("a positional argument")).
 		Opt(cli.NewBoolOpt("h").
 			Help("will show how this command looks in the default full help message").
-			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+			WithHelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
 				return cli.DefaultFullHelp(c)
 			}))
 
@@ -265,7 +265,7 @@ func ExampleDefaultShortHelp_simple() {
 		Arg(cli.NewArg("dd").Env("PA2").Help("an optional positional argument")).
 		Opt(cli.NewBoolOpt("h").
 			Help("will show the default short help message").
-			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+			WithHelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
 				return cli.DefaultShortHelp(c)
 			}))
 
@@ -296,7 +296,7 @@ func ExampleDefaultShortHelp_simpleWithSubcommands() {
 		Subcmd(cli.NewCmd("subcommand2").Help("another subcommand")).
 		Opt(cli.NewBoolOpt("h").
 			Help("will show the default short help message").
-			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+			WithHelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
 				return cli.DefaultShortHelp(c)
 			}))
 
@@ -330,7 +330,7 @@ func ExampleDefaultShortHelp_complex() {
 		Arg(cli.NewArg("posarg2").Env("PA2").Help("an optional positional argument")).
 		Opt(cli.NewBoolOpt("h").
 			Help("will show the default short help message").
-			HelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
+			WithHelpGen(func(_ cli.Input, c *cli.CommandInfo) string {
 				return cli.DefaultShortHelp(c)
 			}))
 
