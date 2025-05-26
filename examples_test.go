@@ -325,7 +325,9 @@ func ExampleDefaultShortHelp_complex() {
 		Opt(cli.NewOpt("bb").
 			Help("another option that is required and has a really long blurb to show how it will be wrapped").
 			Required()).
-		Opt(cli.NewOpt("short-blurb-but-really-long-name").Help("another option")).
+		Opt(cli.NewOpt("kind-of-a-long-name").
+			Help("due to this option's name, the blurbs for each option on this command " +
+				"will begin on their own non-indented lines")).
 		Arg(cli.NewArg("posarg1").Required().Help("a required positional argument")).
 		Arg(cli.NewArg("posarg2").Env("PA2").Help("an optional positional argument")).
 		Opt(cli.NewBoolOpt("h").
@@ -343,12 +345,16 @@ func ExampleDefaultShortHelp_complex() {
 	//   example [options] [arguments]
 	//
 	// options:
-	//       --aa  <arg>   an option (default: def) [$AA]
-	//       --bb  <arg>   another option that is required and has a really long blurb to show
-	//                     how it will be wrapped (required)
-	//   -h                will show the default short help message
-	//       --short-blurb-but-really-long-name  <arg>
-	//                     another option
+	//   --aa  <arg>
+	//       an option (default: def) [$AA]
+	//   --bb  <arg>
+	//       another option that is required and has a really long blurb to show how it will be
+	//       wrapped (required)
+	//   -h
+	//       will show the default short help message
+	//   --kind-of-a-long-name  <arg>
+	//       due to this option's name, the blurbs for each option on this command will begin on
+	//       their own non-indented lines
 	//
 	// arguments:
 	//   <posarg1>   a required positional argument (required)

@@ -64,33 +64,76 @@ func DefaultShortHelp(c *CommandInfo) string {
 		return strings.Compare(nameToCmpA, nameToCmpB)
 	})
 
-	var optNameColWidth int
+	var nonCondensedOpts bool
 	for i := range c.Opts {
-		if l := len(c.Opts[i].optUsgNameAndArg()); l > optNameColWidth && l <= helpShortMsgMaxFirstColLen {
-			optNameColWidth = l
+		if l := len(c.Opts[i].optUsgNameAndArg()); l >= helpShortMsgMaxFirstColLen {
+			nonCondensedOpts = true
+			break
 		}
 	}
-	for _, o := range opts {
-		paddedNameAndArg := fmt.Sprintf("  %-*s", optNameColWidth, o.optUsgNameAndArg())
-		desc := o.HelpBlurb
-		if o.IsRequired {
-			desc += " (required)"
+
+	if nonCondensedOpts {
+		for _, o := range opts {
+			desc := o.HelpBlurb
+			if o.IsRequired {
+				desc += " (required)"
+			}
+			if o.HasStrDefault {
+				desc += fmt.Sprintf(" (default: %v)", o.StrDefault)
+			}
+			if o.EnvVar != "" {
+				desc += " [$" + o.EnvVar + "]"
+			}
+			var namesAndVal string
+			{
+				if o.NameShort != "" {
+					namesAndVal += "-" + o.NameShort
+				}
+				if o.NameLong != "" {
+					if o.NameShort != "" {
+						namesAndVal += ", "
+					}
+					namesAndVal += "--" + o.NameLong
+				}
+				if an := o.optUsgArgName(); an != "" {
+					namesAndVal += "  " + an
+				}
+			}
+			content := "  " + namesAndVal
+			content += "\n" + strings.Repeat(" ", 6)
+			content += wrapBlurb(desc, 6, helpMsgTextWidth)
+			u.WriteString(content)
+			u.WriteByte('\n')
 		}
-		if o.HasStrDefault {
-			desc += fmt.Sprintf(" (default: %v)", o.StrDefault)
+	} else {
+		var optNameColWidth int
+		for i := range c.Opts {
+			if l := len(c.Opts[i].optUsgNameAndArg()); l > optNameColWidth && l <= helpShortMsgMaxFirstColLen {
+				optNameColWidth = l
+			}
 		}
-		if o.EnvVar != "" {
-			desc += " [$" + o.EnvVar + "]"
+		for _, o := range opts {
+			paddedNameAndArg := fmt.Sprintf("  %-*s", optNameColWidth, o.optUsgNameAndArg())
+			desc := o.HelpBlurb
+			if o.IsRequired {
+				desc += " (required)"
+			}
+			if o.HasStrDefault {
+				desc += fmt.Sprintf(" (default: %v)", o.StrDefault)
+			}
+			if o.EnvVar != "" {
+				desc += " [$" + o.EnvVar + "]"
+			}
+			content := paddedNameAndArg
+			if len(paddedNameAndArg) > helpShortMsgMaxFirstColLen {
+				content += "\n" + strings.Repeat(" ", optNameColWidth+5)
+			} else {
+				content += "   "
+			}
+			content += wrapBlurb(desc, len(paddedNameAndArg)+3, helpMsgTextWidth)
+			u.WriteString(content)
+			u.WriteByte('\n')
 		}
-		content := paddedNameAndArg
-		if len(paddedNameAndArg) > helpShortMsgMaxFirstColLen {
-			content += "\n" + strings.Repeat(" ", optNameColWidth+5)
-		} else {
-			content += "   "
-		}
-		content += wrapBlurb(desc, len(paddedNameAndArg)+3, helpMsgTextWidth)
-		u.WriteString(content)
-		u.WriteByte('\n')
 	}
 
 	if len(c.Args) > 0 {
@@ -218,14 +261,12 @@ func DefaultFullHelp(c *CommandInfo) string {
 			if o.NameShort != "" {
 				usgNamesAndArg += "-" + o.NameShort
 			}
-
 			if o.NameLong != "" {
 				if o.NameShort != "" {
 					usgNamesAndArg += ", "
 				}
 				usgNamesAndArg += "--" + o.NameLong
 			}
-
 			if an := o.optUsgArgName(); an != "" {
 				usgNamesAndArg += "  " + an
 			}
