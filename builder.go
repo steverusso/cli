@@ -1,6 +1,9 @@
 package cli
 
-import "strings"
+import (
+	"slices"
+	"strings"
+)
 
 var DefaultHelpInput = NewBoolOpt("help").
 	Short('h').
@@ -30,15 +33,28 @@ func (c *CommandInfo) prepareAndValidate() {
 		*c = (*c).Opt(DefaultHelpInput)
 	}
 
+	// assert there are no duplicate input ids across the options and positional arguments
+	inputIDs := make([]string, 0, len(c.Opts)+len(c.Args))
+	for i := range len(c.Opts) {
+		id := c.Opts[i].ID
+		if slices.Contains(inputIDs, id) {
+			panic("command '" + strings.Join(c.Path, " ") +
+				"' contains duplicate input ids '" + id + "'")
+		}
+		inputIDs = append(inputIDs, id)
+	}
+	for i := range len(c.Args) {
+		id := c.Args[i].ID
+		if slices.Contains(inputIDs, id) {
+			panic("command '" + strings.Join(c.Path, " ") +
+				"' contains duplicate input ids '" + id + "'")
+		}
+		inputIDs = append(inputIDs, id)
+	}
+
 	// option assertions
 	for i := 0; i < len(c.Opts)-1; i++ {
 		for z := i + 1; z < len(c.Opts); z++ {
-			// assert there are no duplicate input ids
-			if c.Opts[i].ID == c.Opts[z].ID {
-				panic("command '" + strings.Join(c.Path, " ") +
-					"' contains duplicate option ids '" + c.Opts[i].ID + "'")
-			}
-
 			// assert there are no duplicate long or short option names
 			if c.Opts[i].NameShort != "" && c.Opts[i].NameShort == c.Opts[z].NameShort {
 				panic("command '" + strings.Join(c.Path, " ") +
@@ -47,16 +63,6 @@ func (c *CommandInfo) prepareAndValidate() {
 			if c.Opts[i].NameLong != "" && c.Opts[i].NameLong == c.Opts[z].NameLong {
 				panic("command '" + strings.Join(c.Path, " ") +
 					"' contains duplicate option long name '" + c.Opts[i].NameLong + "'")
-			}
-		}
-	}
-
-	// assert there are no duplicate arg ids
-	for i := 0; i < len(c.Args)-1; i++ {
-		for z := i + 1; z < len(c.Args); z++ {
-			if c.Args[i].ID == c.Args[z].ID {
-				panic("command '" + strings.Join(c.Path, " ") +
-					"' contains duplicate argument ids '" + c.Args[i].ID + "'")
 			}
 		}
 	}

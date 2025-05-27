@@ -104,8 +104,8 @@ func TestBuilder(t *testing.T) {
 				},
 			},
 			expPanicVals: []any{
-				"command 'root one' contains duplicate option ids 'o1'",
-				"command 'root' contains duplicate argument ids 'a1'",
+				"command 'root one' contains duplicate input ids 'o1'",
+				"command 'root' contains duplicate input ids 'a1'",
 			},
 		},
 		{

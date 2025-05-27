@@ -130,8 +130,7 @@ type HelpGenerator = func(Input, *CommandInfo) string
 
 type Command struct {
 	Name    string
-	Opts    []Input
-	Args    []Input
+	Inputs  []Input
 	Surplus []string
 	Subcmd  *Command
 }
@@ -150,77 +149,39 @@ type ParsedFrom struct {
 	Default bool
 }
 
-// LookupOpt looks for an option value with the given id in the given Command and converts
-// the value to the given type T through an untested type assertion (so this will panic if
-// the value is found and can't be converted to type T). So if the option is present, the
-// typed value will be returned and the boolean will be true. Otherwise, the zero value of
-// type T will be returned and the boolean will be false.
-func LookupOpt[T any](c *Command, id string) (T, bool) {
-	for i := len(c.Opts) - 1; i >= 0; i-- {
-		if c.Opts[i].ID == id {
-			return c.Opts[i].Value.(T), true
+// Lookup looks for a parsed input value with the given id in the given Command and
+// converts the value to the given type T through an untested type assertion (so this
+// will panic if the value is found and can't be converted to type T). So if the input
+// is present, the typed value will be returned and the boolean will be true. Otherwise,
+// the zero value of type T will be returned and the boolean will be false.
+func Lookup[T any](c *Command, id string) (T, bool) {
+	for i := len(c.Inputs) - 1; i >= 0; i-- {
+		if c.Inputs[i].ID == id {
+			return c.Inputs[i].Value.(T), true
 		}
 	}
 	var zero T
 	return zero, false
 }
 
-// GetOpt gets the option value with the given id in the given Command and converts the
-// value to the given type T through an untested type assertion. This function will panic
-// if the value isn't found or if the value can't be converted to type T. To check
-// whether the value is found instead of panicking, see [LookupOpt].
-func GetOpt[T any](c *Command, id string) T {
-	if v, ok := LookupOpt[T](c, id); ok {
+// Get gets the parsed input value with the given id in the given Command and converts
+// the value to the given type T through an untested type assertion. This function will
+// panic if the value isn't found or if the value can't be converted to type T.
+// To check whether the value is found instead of panicking, see [Lookup].
+func Get[T any](c *Command, id string) T {
+	if v, ok := Lookup[T](c, id); ok {
 		return v
 	}
-	panic("no parsed option value found for id '" + id + "'")
+	panic("no parsed input value for id '" + id + "'")
 }
 
-// GetOptOr looks for an option value with the given id in the given Command and converts
-// the value to the given type T through an untested type assertion (so this will panic if
-// the value is found and can't be converted to type T). If the value isn't found, the
-// given fallback value will be returned. To check whether the value is found instead of
-// using a fallback value, see [LookupOpt].
-func GetOptOr[T any](c *Command, id string, fallback T) T {
-	if v, ok := LookupOpt[T](c, id); ok {
-		return v
-	}
-	return fallback
-}
-
-// LookupArg looks for a positional argument value with the given id in the given Command
-// and converts the value to the given type T through an untested type assertion (so this
-// will panic if the value is found and can't be converted to type T). So if the positional
-// argument is present, the typed value will be returned and the boolean will be true.
-// Otherwise, the zero value of type T will be returned and the boolean will be false.
-func LookupArg[T any](c *Command, id string) (T, bool) {
-	for i := len(c.Args) - 1; i >= 0; i-- {
-		if c.Args[i].ID == id {
-			return c.Args[i].Value.(T), true
-		}
-	}
-	var zero T
-	return zero, false
-}
-
-// GetArg gets the positional argument value with the given id in the given Command and
-// converts the value to the given type T through an untested type assertion. This
-// function will panic if the value isn't found or if the value can't be converted to type
-// T. To check whether the value is found instead of panicking, see [LookupArg].
-func GetArg[T any](c *Command, id string) T {
-	if v, ok := LookupArg[T](c, id); ok {
-		return v
-	}
-	panic("no parsed value found for positional argument id '" + id + "'")
-}
-
-// GetArgOr looks for a positional argument value with the given id in the given Command
-// and converts the value to the given type T through an untested type assertion (so this
-// will panic if the value is found and can't be converted to type T). If the value isn't
-// found, the given fallback value will be returned. To check whether the value is found
-// instead of using a fallback value, see [LookupArg].
-func GetArgOr[T any](c *Command, id string, fallback T) T {
-	if v, ok := LookupArg[T](c, id); ok {
+// GetOr looks for a parsed input value with the given id in the given Command and
+// converts the value to the given type T through an untested type assertion (so this
+// will panic if the value is found and can't be converted to type T). If the value
+// isn't found, the given fallback value will be returned. To check whether the value
+// is found instead of using a fallback value, see [Lookup].
+func GetOr[T any](c *Command, id string, fallback T) T {
+	if v, ok := Lookup[T](c, id); ok {
 		return v
 	}
 	return fallback
@@ -255,7 +216,7 @@ func (in *CommandInfo) Parse(args ...string) (*Command, error) {
 		args = os.Args[1:]
 	}
 	c := &Command{
-		Opts: make([]Input, 0, len(args)),
+		Inputs: make([]Input, 0, len(args)),
 	}
 	err := parse(in, c, args)
 	return c, err
@@ -279,8 +240,8 @@ func lookupOptionByShortName(in *CommandInfo, shortName string) *InputInfo {
 }
 
 func hasOpt(c *Command, id string) bool {
-	for i := range c.Opts {
-		if c.Opts[i].ID == id {
+	for i := range c.Inputs {
+		if c.Inputs[i].ID == id {
 			return true
 		}
 	}
@@ -288,8 +249,8 @@ func hasOpt(c *Command, id string) bool {
 }
 
 func hasArg(c *Command, id string) bool {
-	for i := range c.Args {
-		if c.Args[i].ID == id {
+	for i := range c.Inputs {
+		if c.Inputs[i].ID == id {
 			return true
 		}
 	}
@@ -305,7 +266,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			if err != nil {
 				return fmt.Errorf("parsing default value '%s' for option '%s': %w", dv, c.Opts[i].ID, err)
 			}
-			p.Opts = append(p.Opts, pi)
+			p.Inputs = append(p.Inputs, pi)
 		}
 	}
 	for i := range c.Args {
@@ -315,7 +276,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			if err != nil {
 				return fmt.Errorf("parsing default value '%s' for arg '%s': %w", dv, c.Args[i].ID, err)
 			}
-			p.Args = append(p.Args, pi)
+			p.Inputs = append(p.Inputs, pi)
 		}
 	}
 
@@ -327,7 +288,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				if err != nil {
 					return fmt.Errorf("using env var '%s': %w", c.Opts[i].EnvVar, err)
 				}
-				p.Opts = append(p.Opts, pi)
+				p.Inputs = append(p.Inputs, pi)
 			}
 		}
 	}
@@ -338,7 +299,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				if err != nil {
 					return fmt.Errorf("using env var '%s': %w", c.Args[i].EnvVar, err)
 				}
-				p.Args = append(p.Args, pi)
+				p.Inputs = append(p.Inputs, pi)
 			}
 		}
 	}
@@ -406,7 +367,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 					}
 				}
 
-				p.Opts = append(p.Opts, pi)
+				p.Inputs = append(p.Inputs, pi)
 
 				if skipRest {
 					break
@@ -470,7 +431,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			}
 		}
 
-		p.Opts = append(p.Opts, pi)
+		p.Inputs = append(p.Inputs, pi)
 	}
 
 	var errMissingOpts error
@@ -510,7 +471,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				if err != nil {
 					return fmt.Errorf("parsing positional argument #%d '%s': %w", i+1, rawArg, err)
 				}
-				p.Args = append(p.Args, pi)
+				p.Inputs = append(p.Inputs, pi)
 			} else if c.Args[i].IsRequired {
 				var missing []string
 				for ; i < len(c.Args); i++ {
@@ -539,8 +500,8 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		return ErrNoSubcmd
 	}
 	p.Subcmd = &Command{
-		Opts: make([]Input, 0, len(rest)),
-		Name: rest[0],
+		Inputs: make([]Input, 0, len(rest)),
+		Name:   rest[0],
 	}
 
 	var subcmdInfo *CommandInfo

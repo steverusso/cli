@@ -16,10 +16,10 @@ func ExampleInputInfo_Short() {
 		Opt(cli.NewOpt("flag").Short('f'))
 
 	c1 := in.ParseOrExit("-f", "hello")
-	fmt.Println(cli.GetOpt[string](c1, "flag"))
+	fmt.Println(cli.Get[string](c1, "flag"))
 
 	c2 := in.ParseOrExit("--flag", "world")
-	fmt.Println(cli.GetOpt[string](c2, "flag"))
+	fmt.Println(cli.Get[string](c2, "flag"))
 	// Output:
 	// hello
 	// world
@@ -30,7 +30,7 @@ func ExampleInputInfo_ShortOnly() {
 		Opt(cli.NewOpt("flag").ShortOnly('f'))
 
 	c := in.ParseOrExit("-f", "hello")
-	fmt.Println(cli.GetOpt[string](c, "flag"))
+	fmt.Println(cli.Get[string](c, "flag"))
 
 	_, err := in.Parse("--flag", "helloworld")
 	fmt.Println(err)
@@ -94,7 +94,7 @@ func ExampleInputInfo_WithParser() {
 		Opt(cli.NewOpt("aa").WithParser(pointParser)).
 		ParseOrExit("--aa", "3,7")
 
-	fmt.Printf("%+#v\n", cli.GetOpt[image.Point](c, "aa"))
+	fmt.Printf("%+#v\n", cli.Get[image.Point](c, "aa"))
 	// Output:
 	// image.Point{X:3, Y:7}
 }
@@ -104,7 +104,7 @@ func ExampleParseURL() {
 		Opt(cli.NewOpt("u").WithParser(cli.ParseURL))
 
 	c := in.ParseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
-	fmt.Println(cli.GetOpt[*url.URL](c, "u"))
+	fmt.Println(cli.Get[*url.URL](c, "u"))
 
 	_, err := in.Parse("-u", "b@d://.com")
 	fmt.Println(err)
@@ -118,7 +118,7 @@ func ExampleParseDuration() {
 		Opt(cli.NewOpt("d").WithParser(cli.ParseDuration))
 
 	c := in.ParseOrExit("-d", "1h2m3s")
-	fmt.Println(cli.GetOpt[time.Duration](c, "d"))
+	fmt.Println(cli.Get[time.Duration](c, "d"))
 
 	_, err := in.Parse("-d", "not_a_duration")
 	fmt.Println(err)
@@ -132,7 +132,7 @@ func ExampleNewTimeParser() {
 		Opt(cli.NewOpt("t").WithParser(cli.NewTimeParser("2006-01-02")))
 
 	c := in.ParseOrExit("-t", "2025-04-12")
-	fmt.Println(cli.GetOpt[time.Time](c, "t"))
+	fmt.Println(cli.Get[time.Time](c, "t"))
 
 	_, err := in.Parse("-t", "hello")
 	fmt.Println(err)
@@ -151,8 +151,8 @@ func ExampleNewFileParser() {
 		"-s", "testdata/sample_int",
 	)
 
-	fmt.Println(cli.GetOpt[int](c, "i"))
-	fmt.Printf("%q\n", cli.GetOpt[string](c, "s"))
+	fmt.Println(cli.Get[int](c, "i"))
+	fmt.Printf("%q\n", cli.Get[string](c, "s"))
 
 	_, err := in.Parse("-i", "testdata/sample_empty")
 	fmt.Println(err)
@@ -361,29 +361,29 @@ func ExampleDefaultShortHelp_complex() {
 	//   [posarg2]   an optional positional argument [$PA2]
 }
 
-func ExampleGetOpt() {
+func ExampleGet_option() {
 	c := cli.NewCmd("example").
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-b=hello")
 
 	// The following line would panic because 'a' isn't present.
-	// a := cli.GetOpt[string](c, "a")
+	// a := cli.Get[string](c, "a")
 
-	b := cli.GetOpt[string](c, "b")
+	b := cli.Get[string](c, "b")
 	fmt.Printf("b: %q\n", b)
 	// Output:
 	// b: "hello"
 }
 
-func ExampleGetOptOr() {
+func ExampleGetOr_option() {
 	c := cli.NewCmd("example").
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-a=hello")
 
-	a := cli.GetOpt[string](c, "a")
-	b := cli.GetOptOr(c, "b", "world")
+	a := cli.Get[string](c, "a")
+	b := cli.GetOr(c, "b", "world")
 
 	fmt.Printf("a: %q\n", a)
 	fmt.Printf("b: %q\n", b)
@@ -392,14 +392,14 @@ func ExampleGetOptOr() {
 	// b: "world"
 }
 
-func ExampleLookupOpt() {
+func ExampleLookup_option() {
 	c := cli.NewCmd("example").
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-b=hello")
 
-	a, hasA := cli.LookupOpt[string](c, "a")
-	b, hasB := cli.LookupOpt[string](c, "b")
+	a, hasA := cli.Lookup[string](c, "a")
+	b, hasB := cli.Lookup[string](c, "b")
 
 	fmt.Printf("a: %q, %v\n", a, hasA)
 	fmt.Printf("b: %q, %v\n", b, hasB)
@@ -408,29 +408,29 @@ func ExampleLookupOpt() {
 	// b: "hello", true
 }
 
-func ExampleGetArg() {
+func ExampleGet_positionalArgs() {
 	c := cli.NewCmd("example").
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
 		ParseOrExit("hello")
 
 	// The following line would panic because 'a' isn't present.
-	// b := cli.GetArg[string](c, "b")
+	// b := cli.Get[string](c, "b")
 
-	a := cli.GetArg[string](c, "a")
+	a := cli.Get[string](c, "a")
 	fmt.Printf("a: %q\n", a)
 	// Output:
 	// a: "hello"
 }
 
-func ExampleGetArgOr() {
+func ExampleGetOr_positionlArgs() {
 	c := cli.NewCmd("example").
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
 		ParseOrExit("hello")
 
-	a := cli.GetArg[string](c, "a")
-	b := cli.GetArgOr(c, "b", "world")
+	a := cli.Get[string](c, "a")
+	b := cli.GetOr(c, "b", "world")
 
 	fmt.Printf("a: %q\n", a)
 	fmt.Printf("b: %q\n", b)
@@ -439,14 +439,14 @@ func ExampleGetArgOr() {
 	// b: "world"
 }
 
-func ExampleLookupArg() {
+func ExampleLookup_positionalArgs() {
 	c := cli.NewCmd("example").
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
 		ParseOrExit("hello")
 
-	a, hasA := cli.LookupArg[string](c, "a")
-	b, hasB := cli.LookupArg[string](c, "b")
+	a, hasA := cli.Lookup[string](c, "a")
+	b, hasB := cli.Lookup[string](c, "b")
 
 	fmt.Printf("a: %q, %v\n", a, hasA)
 	fmt.Printf("b: %q, %v\n", b, hasB)
