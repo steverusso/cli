@@ -124,10 +124,17 @@ type InputInfo struct {
 	HelpGen HelpGenerator
 }
 
+// ValueParser describes any function that takes a string and returns some type or an
+// error. This is the signature of any input value parser. See [ParseBool], [ParseInt],
+// and the other provided parsers for some examples.
 type ValueParser = func(string) (any, error)
 
+// HelpGenerator describes any function that will return a help message based on the
+// [Input] that triggered it and the [CommandInfo] of which it is a member. See
+// [DefaultHelpGenerator] for an example.
 type HelpGenerator = func(Input, *CommandInfo) string
 
+// Command is a parsed command structure.
 type Command struct {
 	Name    string
 	Inputs  []Input
@@ -135,6 +142,8 @@ type Command struct {
 	Subcmd  *Command
 }
 
+// Input is a parsed option value or positional argument value along with other
+// information such as the input ID it corresponds to and where it was parsed from.
 type Input struct {
 	Value    any
 	ID       string
@@ -142,11 +151,13 @@ type Input struct {
 	From     ParsedFrom
 }
 
+// ParsedFrom describes where an Input is parsed from. The place it came from will be the
+// only non-zero field of this struct.
 type ParsedFrom struct {
-	Env     string // the env var's name
-	Opt     string // the provided option name
-	Arg     int    // the position starting from 1
-	Default bool
+	Env     string // Came from this env var's name.
+	Opt     string // Came from this provided option name.
+	Arg     int    // Appeared as the nth positional argument starting from 1.
+	Default bool   // Came from a provided default value.
 }
 
 // Lookup looks for a parsed input value with the given id in the given Command and
