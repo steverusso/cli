@@ -88,6 +88,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"iter"
 	"os"
 	"slices"
 	"strings"
@@ -209,6 +210,34 @@ func GetOrFunc[T any](c *Command, id string, fn func() T) T {
 		return v
 	}
 	return fn()
+}
+
+// GetAll returns all parsed values present for the given id. It converts each value to
+// the given type T through an untested type assertion (so this will panic if any value
+// found can't be converted to type T).
+func GetAll[T any](c *Command, id string) []T {
+	vals := make([]T, 0, len(c.Inputs)/3)
+	for i := range c.Inputs {
+		if c.Inputs[i].ID == id {
+			vals = append(vals, c.Inputs[i].Value.(T))
+		}
+	}
+	return vals
+}
+
+// GetAllSeq returns an iterator over each parsed value that has the given id. The
+// iterator yields the same values that would be returned by [GetAll](c, id) but without
+// constructing the slice.
+func GetAllSeq[T any](c *Command, id string) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := range c.Inputs {
+			if c.Inputs[i].ID == id {
+				if !yield(c.Inputs[i].Value.(T)) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // ParseOrExit will parse input based on this CommandInfo. If help was requested, it

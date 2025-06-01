@@ -492,3 +492,35 @@ func ExampleLookup_positionalArgs() {
 	// a: "hello", true
 	// b: "", false
 }
+
+func ExampleGetAll() {
+	c := cli.New().
+		Opt(cli.NewIntOpt("a").Default("0")).
+		ParseOrExit("-a", "1", "-a", "2", "-a", "3")
+
+	a := cli.GetAll[int](c, "a")
+
+	fmt.Printf("%+#v\n", a)
+	// Output:
+	// []int{0, 1, 2, 3}
+}
+
+func ExampleGetAllSeq() {
+	c := cli.New().
+		Opt(cli.NewOpt("a").Default("Lorem")).
+		ParseOrExit(
+			"-a", "ipsum",
+			"-a", "dolor",
+			"-a", "sit",
+			"-a", "amet")
+
+	for str := range cli.GetAllSeq[string](c, "a") {
+		fmt.Printf("%v\n", str)
+	}
+	// Output:
+	// Lorem
+	// ipsum
+	// dolor
+	// sit
+	// amet
+}
