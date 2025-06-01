@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"runtime/debug"
 	"slices"
 	"strings"
 )
@@ -18,6 +19,25 @@ var (
 	errOptAsPosArg             = "adding an option as a positional argument"
 	errReqArgAfterOptional     = "required positional arguments cannot come after optional ones"
 )
+
+// New is intented to initialize a new root command. If no name is provided, it will use
+// runtime information to get the module name and use that for the command's name.
+// Anything more than a single name provided is ignored.
+func New(name ...string) CommandInfo {
+	var cmdName string
+	if len(name) > 0 {
+		cmdName = name[0]
+	} else {
+		info, ok := debug.ReadBuildInfo()
+		if !ok {
+			panic("failed to read build info")
+		}
+		lastSlash := strings.LastIndexByte(info.Path, '/')
+		cmdName = info.Path[lastSlash+1:]
+	}
+
+	return NewCmd(cmdName)
+}
 
 func (c *CommandInfo) prepareAndValidate() {
 	// Add the default help option here as long as this

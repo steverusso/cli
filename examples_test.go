@@ -12,7 +12,7 @@ import (
 )
 
 func ExampleInputInfo_Short() {
-	in := cli.NewCmd("example").
+	in := cli.New().
 		Opt(cli.NewOpt("flag").Short('f'))
 
 	c1 := in.ParseOrExit("-f", "hello")
@@ -26,7 +26,7 @@ func ExampleInputInfo_Short() {
 }
 
 func ExampleInputInfo_ShortOnly() {
-	in := cli.NewCmd("example").
+	in := cli.New().
 		Opt(cli.NewOpt("flag").ShortOnly('f'))
 
 	c := in.ParseOrExit("-f", "hello")
@@ -40,7 +40,7 @@ func ExampleInputInfo_ShortOnly() {
 }
 
 func ExampleInputInfo_WithValueName_option() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("example program").
 		Opt(cli.NewOpt("aa").WithValueName("str").Help("it says '<str>' above instead of '<arg>'"))
 
@@ -61,7 +61,7 @@ func ExampleInputInfo_WithValueName_option() {
 }
 
 func ExampleInputInfo_WithValueName_positionalArgument() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("example program").
 		Arg(cli.NewArg("aa").WithValueName("filename").Help("it says '[filename]' above instead of '[aa]'"))
 
@@ -90,7 +90,7 @@ func ExampleInputInfo_WithParser() {
 		return image.Point{X: x, Y: y}, nil
 	}
 
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Opt(cli.NewOpt("aa").WithParser(pointParser)).
 		ParseOrExit("--aa", "3,7")
 
@@ -100,7 +100,7 @@ func ExampleInputInfo_WithParser() {
 }
 
 func ExampleParseURL() {
-	in := cli.NewCmd("example").
+	in := cli.New().
 		Opt(cli.NewOpt("u").WithParser(cli.ParseURL))
 
 	c := in.ParseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
@@ -114,7 +114,7 @@ func ExampleParseURL() {
 }
 
 func ExampleParseDuration() {
-	in := cli.NewCmd("example").
+	in := cli.New().
 		Opt(cli.NewOpt("d").WithParser(cli.ParseDuration))
 
 	c := in.ParseOrExit("-d", "1h2m3s")
@@ -128,7 +128,7 @@ func ExampleParseDuration() {
 }
 
 func ExampleNewTimeParser() {
-	in := cli.NewCmd("example").
+	in := cli.New().
 		Opt(cli.NewOpt("t").WithParser(cli.NewTimeParser("2006-01-02")))
 
 	c := in.ParseOrExit("-t", "2025-04-12")
@@ -142,7 +142,7 @@ func ExampleNewTimeParser() {
 }
 
 func ExampleNewFileParser() {
-	in := cli.NewCmd("example").
+	in := cli.New().
 		Opt(cli.NewOpt("i").WithParser(cli.NewFileParser(cli.ParseInt))).
 		Opt(cli.NewOpt("s").WithParser(cli.NewFileParser(nil)))
 
@@ -167,7 +167,7 @@ func ExampleNewFileParser() {
 }
 
 func ExampleCommandInfo_ExtraHelp() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("an example command").
 		ExtraHelp("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
 
@@ -190,7 +190,7 @@ func ExampleCommandInfo_ExtraHelp() {
 }
 
 func ExampleCommandInfo_Usage() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("an example command").
 		Usage(
 			"example [--aa <arg>]",
@@ -216,7 +216,7 @@ func ExampleCommandInfo_Usage() {
 }
 
 func ExampleDefaultFullHelp() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("an example command").
 		Opt(cli.NewOpt("aa").Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").
@@ -257,7 +257,7 @@ func ExampleDefaultFullHelp() {
 }
 
 func ExampleDefaultShortHelp_simple() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("an example command").
 		Opt(cli.NewOpt("aa").Short('a').Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").Short('b').Required().Help("another option")).
@@ -288,7 +288,7 @@ func ExampleDefaultShortHelp_simple() {
 }
 
 func ExampleDefaultShortHelp_simpleWithSubcommands() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("an example command").
 		Opt(cli.NewOpt("aa").Short('a').Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").Short('b').Required().Help("another option")).
@@ -319,7 +319,7 @@ func ExampleDefaultShortHelp_simpleWithSubcommands() {
 }
 
 func ExampleDefaultShortHelp_complex() {
-	in := cli.NewCmd("example").
+	in := cli.New("example").
 		Help("an example command").
 		Opt(cli.NewOpt("aa").Env("AA").Default("def").Help("an option")).
 		Opt(cli.NewOpt("bb").
@@ -362,7 +362,7 @@ func ExampleDefaultShortHelp_complex() {
 }
 
 func ExampleGet_option() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-b=hello")
@@ -377,7 +377,7 @@ func ExampleGet_option() {
 }
 
 func ExampleGetOr_option() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-a=hello")
@@ -393,7 +393,7 @@ func ExampleGetOr_option() {
 }
 
 func ExampleLookup_option() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-b=hello")
@@ -409,7 +409,7 @@ func ExampleLookup_option() {
 }
 
 func ExampleGet_positionalArgs() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
 		ParseOrExit("hello")
@@ -424,7 +424,7 @@ func ExampleGet_positionalArgs() {
 }
 
 func ExampleGetOr_positionlArgs() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
 		ParseOrExit("hello")
@@ -440,7 +440,7 @@ func ExampleGetOr_positionlArgs() {
 }
 
 func ExampleGetOrFunc() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
 		ParseOrExit("-a", "hello")
@@ -458,7 +458,7 @@ func ExampleGetOrFunc() {
 }
 
 func ExampleLookup_positionalArgs() {
-	c := cli.NewCmd("example").
+	c := cli.New().
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
 		ParseOrExit("hello")
