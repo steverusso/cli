@@ -99,6 +99,26 @@ func ExampleInputInfo_WithParser() {
 	// image.Point{X:3, Y:7}
 }
 
+func ExampleInputInfo_Long() {
+	in := cli.New("example").
+		Help("example program").
+		Opt(cli.NewOpt("id1").Help("long name is the id by default")).
+		Opt(cli.NewOpt("id2").Long("long-name").Help("long name is set to something other than the id"))
+
+	_, err := in.Parse("-h")
+	fmt.Println(err)
+	// Output:
+	// example - example program
+	//
+	// usage:
+	//   example [options]
+	//
+	// options:
+	//   -h, --help               Show this help message and exit.
+	//       --id1  <arg>         long name is the id by default
+	//       --long-name  <arg>   long name is set to something other than the id
+}
+
 func ExampleParseURL() {
 	in := cli.New().
 		Opt(cli.NewOpt("u").WithParser(cli.ParseURL))

@@ -257,6 +257,9 @@ func (in InputInfo) ShortOnly(c byte) InputInfo {
 	return in.Short(c)
 }
 
+// Long sets the option long name to the given name. Since an option's long name will be
+// the input ID by default, this method is really only necessary when the long name must
+// differ from the input ID.
 func (in InputInfo) Long(name string) InputInfo {
 	in.NameLong = name
 	return in
