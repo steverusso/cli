@@ -671,6 +671,76 @@ func TestOptLookups(t *testing.T) {
 			}()
 		}
 	}
+
+	in = NewCmd("program").
+		Opt(NewOpt("a").Default("A")).
+		Opt(NewOpt("b").Default("B"))
+
+	// with both options present
+	{
+		c := in.ParseOrExit("-ahello", "-bworld")
+		// straight getting the opts
+		{
+			optA := Get[string](c, "a")
+			if optA != "hello" {
+				t.Errorf(`expected "hello" for option a, got "%s"`, optA)
+			}
+			optB := Get[string](c, "b")
+			if optB != "world" {
+				t.Errorf(`expected "world" for option b, got "%s"`, optB)
+			}
+		}
+		// above should be identical with lookups
+		{
+			optA, ok := Lookup[string](c, "a")
+			if optA != "hello" || !ok {
+				t.Errorf(`expected ("hello", true) for option a lookup, got ("%s", %v)`, optA, ok)
+			}
+			optB, ok := Lookup[string](c, "b")
+			if optB != "world" || !ok {
+				t.Errorf(`expected ("world", true) for option b lookup, got ("%s", %v)`, optB, ok)
+			}
+		}
+	}
+
+	// with only the first option 'a' provided
+	{
+		c := in.ParseOrExit("-ahello")
+		// first one should be there, second one default
+		{
+			optA, ok := Lookup[string](c, "a")
+			if optA != "hello" || !ok {
+				t.Errorf(`expected ("hello", true) for option 'a' lookup, got ("%s", %v)`, optA, ok)
+			}
+			optB, ok := Lookup[string](c, "b")
+			if optB != "B" || !ok {
+				t.Errorf(`expected ("B", true) for option 'b' lookup, got (%s, %v)`, optB, ok)
+			}
+		}
+		// based on the above assertions, we should get the right fallback for option 'b'
+		{
+			optA := GetOr(c, "a", "hey")
+			if optA != "hello" {
+				t.Errorf(`expected "hello" for option 'a', got "%s"`, optA)
+			}
+			optB := GetOr(c, "b", "earth")
+			if optB != "B" {
+				t.Errorf(`expected to not use fallback for option 'b' and get "B", got "%s"`, optB)
+			}
+		}
+		// trying to cast the first one to anything but a string should panic
+		{
+			func() {
+				defer func() {
+					gotPanicVal := recover()
+					if gotPanicVal == nil {
+						t.Fatalf("didn't panic when trying to cast a string arg to an int")
+					}
+				}()
+				_ = Get[int](c, "a")
+			}()
+		}
+	}
 }
 
 func TestArgLookups(t *testing.T) {
