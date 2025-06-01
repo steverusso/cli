@@ -188,7 +188,7 @@ func Get[T any](c *Command, id string) T {
 
 // GetOr looks for a parsed input value with the given id in the given Command and
 // converts the value to the given type T through an untested type assertion (so this
-// will panic if the value is found and can't be converted to type T). If the value
+// will panic if the value is found but can't be converted to type T). If the value
 // isn't found, the given fallback value will be returned. To check whether the value
 // is found instead of using a fallback value, see [Lookup].
 func GetOr[T any](c *Command, id string, fallback T) T {
@@ -196,6 +196,19 @@ func GetOr[T any](c *Command, id string, fallback T) T {
 		return v
 	}
 	return fallback
+}
+
+// GetOrFunc is like [GetOr] in that it looks for a parsed input value with the given id
+// in the given Command and converts the value to the given type T through an untested
+// type assertion (so this will panic if the value is found but can't be converted to
+// type T). However, if the value isn't found, it will run the provided function fn in
+// order to create and return the fallback value. To check whether the value is found
+// instead of using a fallback, see [Lookup].
+func GetOrFunc[T any](c *Command, id string, fn func() T) T {
+	if v, ok := Lookup[T](c, id); ok {
+		return v
+	}
+	return fn()
 }
 
 // ParseOrExit will parse input based on this CommandInfo. If help was requested, it

@@ -439,6 +439,24 @@ func ExampleGetOr_positionlArgs() {
 	// b: "world"
 }
 
+func ExampleGetOrFunc() {
+	c := cli.NewCmd("example").
+		Opt(cli.NewOpt("a")).
+		Opt(cli.NewOpt("b")).
+		ParseOrExit("-a", "hello")
+
+	a := cli.GetOr(c, "a", "")
+	b := cli.GetOrFunc(c, "b", func() string {
+		return "world"
+	})
+
+	fmt.Printf("a: %q\n", a)
+	fmt.Printf("b: %q\n", b)
+	// Output:
+	// a: "hello"
+	// b: "world"
+}
+
 func ExampleLookup_positionalArgs() {
 	c := cli.NewCmd("example").
 		Arg(cli.NewArg("a")).
