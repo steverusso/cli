@@ -96,8 +96,11 @@ func (c *CommandInfo) prepareAndValidate() {
 			}
 		}
 	}
-
 	for i := range c.Subcmds {
+		c.Subcmds[i].Path = make([]string, len(c.Path)+1)
+		copy(c.Subcmds[i].Path, c.Path)
+		c.Subcmds[i].Path[len(c.Subcmds[i].Path)-1] = c.Subcmds[i].Name
+
 		c.Subcmds[i].prepareAndValidate()
 	}
 }
@@ -167,15 +170,13 @@ func (c CommandInfo) Arg(a InputInfo) CommandInfo {
 	return c
 }
 
+// Subcmd adds the given [CommandInfo] sc as a subcommand under c. This function will
+// panic if c already has at least one positional argument because commands cannot contain
+// both positional arguments and subcommands simultaneously.
 func (c CommandInfo) Subcmd(sc CommandInfo) CommandInfo {
 	if len(c.Args) > 0 {
 		panic(errMixingPosArgsAndSubcmds)
 	}
-
-	sc.Path = make([]string, len(c.Path))
-	copy(sc.Path, c.Path)
-	sc.Path = append(sc.Path, sc.Name)
-
 	c.Subcmds = append(c.Subcmds, sc)
 	return c
 }

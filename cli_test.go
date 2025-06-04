@@ -482,7 +482,7 @@ func TestParsing(t *testing.T) {
 						t.Fatalf("expected no error, got %[1]T: %[1]v", gotErr)
 					}
 					if !errors.Is(gotErr, tio.expErr) {
-						t.Fatalf("tt:%s: errors don't match:\nexpected: (%[2]T) %+#[2]v\n     got: (%[3]T) %+#[3]v",
+						t.Fatalf("%s: errors don't match:\nexpected: (%[2]T) %+#[2]v\n     got: (%[3]T) %+#[3]v",
 							tio.Case, tio.expErr, gotErr)
 					}
 					return
@@ -502,19 +502,19 @@ func cmpParsed(t *testing.T, tioInfo string, exp, got *Command) {
 		gotNumInputs := len(got.Inputs)
 		expNumInputs := len(exp.Inputs)
 		if gotNumInputs != expNumInputs {
-			t.Fatalf("tt:%s: expected %d parsed options, got %d", tioInfo, expNumInputs, gotNumInputs)
+			t.Fatalf("%s: expected %d parsed options, got %d", tioInfo, expNumInputs, gotNumInputs)
 		}
 		for i, gotOpt := range got.Inputs {
 			expOpt := exp.Inputs[i]
 			if !reflect.DeepEqual(gotOpt, expOpt) {
-				t.Errorf("tt:%s: parsed options[%d]:\nexpected %+#v\n     got %+#v", tioInfo, i, expOpt, gotOpt)
+				t.Errorf("%s: parsed options[%d]:\nexpected %+#v\n     got %+#v", tioInfo, i, expOpt, gotOpt)
 			}
 		}
 	}
 	// surplus args
 	{
 		if !slices.Equal(got.Surplus, exp.Surplus) {
-			t.Errorf("tt:%s: surplus args:\nexpected %+#v\n     got %+#v",
+			t.Errorf("%s: surplus args:\nexpected %+#v\n     got %+#v",
 				tioInfo, exp.Surplus, got.Surplus)
 		}
 	}
@@ -522,9 +522,9 @@ func cmpParsed(t *testing.T, tioInfo string, exp, got *Command) {
 	{
 		switch {
 		case got.Subcmd == nil && exp.Subcmd != nil:
-			t.Errorf("tt:%s:\nexpected subcommand %+v\ngot nil", tioInfo, exp.Subcmd)
+			t.Errorf("%s:\nexpected subcommand %+v\ngot nil", tioInfo, exp.Subcmd)
 		case got.Subcmd != nil && exp.Subcmd == nil:
-			t.Errorf("tt:%s:\ndid not expect a subcommand\ngot %+v", tioInfo, got.Subcmd)
+			t.Errorf("%s:\ndid not expect a subcommand\ngot %+v", tioInfo, got.Subcmd)
 		case got.Subcmd != nil && exp.Subcmd != nil:
 			cmpParsed(t, tioInfo, exp.Subcmd, got.Subcmd)
 		}
@@ -829,7 +829,57 @@ func TestArgLookups(t *testing.T) {
 	}
 }
 
+func TestHelpSubcommands(t *testing.T) {
+	for _, tt := range []struct {
+		Case       string
+		cmd        CommandInfo
+		cliArgs    []string
+		expHelpMsg string
+	}{
+		{
+			Case: ttCase(),
+			cmd: NewCmd("example").
+				Help("nested two levels").
+				Subcmd(NewCmd("a").
+					Subcmd(NewCmd("b").
+						Help("subcommand b"))),
+			cliArgs: []string{"a", "b", "-h"},
+			expHelpMsg: `example a b - subcommand b
+
+usage:
+  b [options]
+
+options:
+  -h, --help   Show this help message and exit.
+`,
+		}, {
+			Case: ttCase(),
+			cmd: NewCmd("example").
+				Help("nested three levels").
+				Subcmd(NewCmd("a").
+					Subcmd(NewCmd("b").
+						Subcmd(NewCmd("c").
+							Help("subcommand c")))),
+			cliArgs: []string{"a", "b", "c", "-h"},
+			expHelpMsg: `example a b c - subcommand c
+
+usage:
+  c [options]
+
+options:
+  -h, --help   Show this help message and exit.
+`,
+		},
+	} {
+		_, err := tt.cmd.Parse(tt.cliArgs...)
+		gotHelpMsg := err.Error()
+		if gotHelpMsg != tt.expHelpMsg {
+			t.Errorf("%s: expected:\n%s\ngot:\n%s", tt.Case, tt.expHelpMsg, gotHelpMsg)
+		}
+	}
+}
+
 func ttCase() string {
 	_, _, line, _ := runtime.Caller(1)
-	return fmt.Sprintf("%d", line)
+	return fmt.Sprintf("tt:%d", line)
 }
