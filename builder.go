@@ -153,20 +153,25 @@ func (c CommandInfo) Opt(o InputInfo) CommandInfo {
 	return c
 }
 
-func (c CommandInfo) Arg(a InputInfo) CommandInfo {
+// Arg adds pa as a positional argument to this CommandInfo. This method will panic if this
+// command already has one or more subcommands (because positional arguments and
+// subcommands are mutually exclusive), or if pa has any option names set, or if pa is
+// required but any previously positional argument is not required (because required
+// positional arguments cannot come after optional ones).
+func (c CommandInfo) Arg(pa InputInfo) CommandInfo {
 	if len(c.Subcmds) > 0 {
 		panic(errMixingPosArgsAndSubcmds)
 	}
 	// Assert the given input is not an option.
-	if a.isOption() {
+	if pa.isOption() {
 		panic(errOptAsPosArg)
 	}
 	// Ensure a required positional arg isn't coming after an optional one.
-	if a.IsRequired && len(c.Args) > 0 && !c.Args[len(c.Args)-1].IsRequired {
+	if pa.IsRequired && len(c.Args) > 0 && !c.Args[len(c.Args)-1].IsRequired {
 		panic(errReqArgAfterOptional)
 	}
 
-	c.Args = append(c.Args, a)
+	c.Args = append(c.Args, pa)
 	return c
 }
 

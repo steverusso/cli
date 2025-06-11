@@ -166,7 +166,7 @@ func ExampleNewFileParser() {
 		Opt(cli.NewOpt("i").WithParser(cli.NewFileParser(cli.ParseInt))).
 		Opt(cli.NewOpt("s").WithParser(cli.NewFileParser(nil)))
 
-	c := in.ParseOrExit(
+	c, _ := in.Parse(
 		"-i", "testdata/sample_int",
 		"-s", "testdata/sample_int",
 	)
@@ -184,6 +184,16 @@ func ExampleNewFileParser() {
 	// "12345"
 	// parsing option 'i': invalid syntax
 	// parsing option 'i': open path_that_doesnt_exist: no such file or directory
+}
+
+func ExampleCommandInfo_Arg() {
+	c := cli.New().
+		Arg(cli.NewArg("name")).
+		ParseOrExit("alice")
+
+	fmt.Println(cli.Get[string](c, "name"))
+	// Output:
+	// alice
 }
 
 func ExampleCommandInfo_ExtraHelp() {
