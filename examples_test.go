@@ -196,6 +196,16 @@ func ExampleCommandInfo_Arg() {
 	// alice
 }
 
+func ExampleCommandInfo_Opt() {
+	c := cli.New().
+		Opt(cli.NewOpt("a")).
+		ParseOrExit("-a", "hello")
+
+	fmt.Println(cli.Get[string](c, "a"))
+	// Output:
+	// hello
+}
+
 func ExampleCommandInfo_ExtraHelp() {
 	in := cli.New("example").
 		Help("an example command").

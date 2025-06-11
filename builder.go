@@ -144,6 +144,9 @@ func (c CommandInfo) Usage(lines ...string) CommandInfo {
 	return c
 }
 
+// Opt adds o as an option to this CommandInfo. This method will panic if the option has
+// neither a long or short name set (this should never happen when using the builder
+// pattern starting with the [NewOpt] function or its siblings).
 func (c CommandInfo) Opt(o InputInfo) CommandInfo {
 	// Assert `o` is not a positional arg by making sure it has at least one option name.
 	if o.NameShort == "" && o.NameLong == "" {
