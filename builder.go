@@ -284,6 +284,10 @@ func (in InputInfo) Env(e string) InputInfo {
 	return in
 }
 
+// Required marks this InputInfo as required, which means an error will be returned when
+// parsing if a value is not provided. If this is a positional argument, it must be added
+// to a command before any optional positional arguments. Required options, however, can
+// be added in any order. See the "Command Line Syntax" section at the top of the docs
 func (in InputInfo) Required() InputInfo {
 	in.IsRequired = true
 	return in

@@ -229,6 +229,42 @@ func ExampleCommandInfo_ExtraHelp() {
 	//       Show this help message and exit.
 }
 
+func ExampleInputInfo_Required_option() {
+	in := cli.New().
+		Opt(cli.NewOpt("a")).
+		Opt(cli.NewOpt("b").Required())
+
+	c, _ := in.Parse("-a", "hello", "-b", "world")
+	fmt.Println(
+		cli.Get[string](c, "a"),
+		cli.Get[string](c, "b"),
+	)
+
+	_, err := in.Parse([]string{}...)
+	fmt.Println(err)
+	// Output:
+	// hello world
+	// missing the following required options: -b
+}
+
+func ExampleInputInfo_Required_postionalArgument() {
+	in := cli.New().
+		Arg(cli.NewArg("a").Required()).
+		Arg(cli.NewArg("b"))
+
+	c, _ := in.Parse("hello", "world")
+	fmt.Println(
+		cli.Get[string](c, "a"),
+		cli.Get[string](c, "b"),
+	)
+
+	_, err := in.Parse([]string{}...)
+	fmt.Println(err)
+	// Output:
+	// hello world
+	// missing the following required arguments: a
+}
+
 func ExampleCommandInfo_Usage() {
 	in := cli.New("example").
 		Help("an example command").
