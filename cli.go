@@ -62,7 +62,7 @@
 //
 // # Basic Usage
 //
-//	p := cli.NewCmd("full").
+//	p := cli.New().
 //		Help("A full example program").
 //		Opt(cli.NewBoolOpt("yes").
 //			Short('y').
@@ -81,7 +81,6 @@
 //		Subcmd(cli.NewCmd("ints").
 //			Help("Print values for each supported signed integer type.").
 //			Opt(cli.NewIntOpt("int").Help("Print the given int value."))).
-//		Build().
 //		ParseOrExit()
 package cli
 
