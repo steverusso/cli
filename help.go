@@ -181,17 +181,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 	}
 
 	if len(c.Subcmds) > 0 {
-		var maxCmdNameLen int
-		for i := range c.Subcmds {
-			if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
-				maxCmdNameLen = n
-			}
-		}
-
-		u.WriteString("\ncommands:\n")
-		for i := range c.Subcmds {
-			fmt.Fprintf(&u, "   %-*s   %s\n", maxCmdNameLen, c.Subcmds[i].Name, c.Subcmds[i].HelpBlurb)
-		}
+		helpWriteSubcmds(&u, c)
 	}
 
 	return u.String()
@@ -327,17 +317,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 	}
 
 	if len(c.Subcmds) > 0 {
-		var maxCmdNameLen int
-		for i := range c.Subcmds {
-			if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
-				maxCmdNameLen = n
-			}
-		}
-
-		u.WriteString("\ncommands:\n")
-		for i := range c.Subcmds {
-			fmt.Fprintf(&u, "   %-*s   %s\n", maxCmdNameLen, c.Subcmds[i].Name, c.Subcmds[i].HelpBlurb)
-		}
+		helpWriteSubcmds(&u, c)
 	}
 
 	return u.String()
@@ -377,6 +357,20 @@ func (o *InputInfo) optUsgArgName() string {
 		return "<" + o.ValueName + ">"
 	}
 	return "<arg>"
+}
+
+func helpWriteSubcmds(u *strings.Builder, c *CommandInfo) {
+	var maxCmdNameLen int
+	for i := range c.Subcmds {
+		if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
+			maxCmdNameLen = n
+		}
+	}
+
+	u.WriteString("\ncommands:\n")
+	for i := range c.Subcmds {
+		fmt.Fprintf(u, "   %-*s   %s\n", maxCmdNameLen, c.Subcmds[i].Name, c.Subcmds[i].HelpBlurb)
+	}
 }
 
 func wrapBlurb(v string, indentLen, lineLen int) string {
