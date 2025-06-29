@@ -64,15 +64,24 @@ func DefaultShortHelp(c *CommandInfo) string {
 		return strings.Compare(nameToCmpA, nameToCmpB)
 	})
 
-	var nonCondensedOpts bool
-	for i := range c.Opts {
-		if l := len(c.Opts[i].optUsgNameAndArg()); l >= helpShortMsgMaxFirstColLen {
-			nonCondensedOpts = true
-			break
+	// First we need to determine the length of the longest left padded 'name(s) + value
+	// name' for the options (meaing which `-s, --long <arg>` is the longest when spacing
+	// is added for any absent short names). This will determine if we ouptut 'condensed'
+	// option data or not, and (if we do condensed) what the right padding should be for
+	// the option name columns that are shorter than the longest one.
+	optLeftPaddedNames := make([]string, len(opts))
+	optNameColWidth := 0
+	for i := range opts {
+		optLeftPaddedNames[i] = opts[i].leftPaddedNames()
+		if l := len(optLeftPaddedNames[i]); l > optNameColWidth {
+			optNameColWidth = l
 		}
 	}
 
-	if nonCondensedOpts {
+	// If the name column width would be longer than the (arbitrary) max width, then we'll
+	// output 'non-condensed' lines of option data so it won't all look awkwardly crammed
+	// off to the right.
+	if optNameColWidth > helpShortMsgMaxFirstColLen {
 		for _, o := range opts {
 			desc := o.HelpBlurb
 			if o.IsRequired {
@@ -106,14 +115,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 			u.WriteByte('\n')
 		}
 	} else {
-		var optNameColWidth int
-		for i := range c.Opts {
-			if l := len(c.Opts[i].optUsgNameAndArg()); l > optNameColWidth && l <= helpShortMsgMaxFirstColLen {
-				optNameColWidth = l
-			}
-		}
-		for _, o := range opts {
-			paddedNameAndArg := fmt.Sprintf("  %-*s", optNameColWidth, o.optUsgNameAndArg())
+		for i, o := range opts {
 			desc := o.HelpBlurb
 			if o.IsRequired {
 				desc += " (required)"
@@ -124,13 +126,8 @@ func DefaultShortHelp(c *CommandInfo) string {
 			if o.EnvVar != "" {
 				desc += " [$" + o.EnvVar + "]"
 			}
-			content := paddedNameAndArg
-			if len(paddedNameAndArg) > helpShortMsgMaxFirstColLen {
-				content += "\n" + strings.Repeat(" ", optNameColWidth+5)
-			} else {
-				content += "   "
-			}
-			content += wrapBlurb(desc, len(paddedNameAndArg)+3, helpMsgTextWidth)
+			content := fmt.Sprintf("  %-*s   ", optNameColWidth, optLeftPaddedNames[i])
+			content += wrapBlurb(desc, len(content), helpMsgTextWidth)
 			u.WriteString(content)
 			u.WriteByte('\n')
 		}
@@ -346,7 +343,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 	return u.String()
 }
 
-func (o *InputInfo) optUsgNameAndArg() string {
+func (o *InputInfo) leftPaddedNames() string {
 	var s string
 	if o.NameShort != "" {
 		s += "-" + o.NameShort
