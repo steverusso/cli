@@ -23,32 +23,10 @@ const (
 
 func DefaultShortHelp(c *CommandInfo) string {
 	u := strings.Builder{}
-	u.Grow((len(c.Opts) + len(c.Args) + len(c.Subcmds)) * 200)
+	u.Grow((len(c.Opts) + len(c.Args) + len(c.Subcmds)) * 500)
 
-	u.WriteString(strings.Join(c.Path, " "))
-	u.WriteString(" - ")
-	u.WriteString(c.HelpBlurb)
-
-	// build default usage line or range user provided ones
-	u.WriteString("\n\nusage:\n")
-	if len(c.HelpUsage) == 0 {
-		u.WriteString("  ")
-		u.WriteString(c.Path[len(c.Path)-1])
-		u.WriteString(" [options]")
-		switch {
-		case len(c.Args) > 0:
-			u.WriteString(" [arguments]")
-		case len(c.Subcmds) > 0:
-			u.WriteString(" <command>")
-		}
-		u.WriteByte('\n')
-	} else {
-		for i := range c.HelpUsage {
-			u.WriteString("  ")
-			u.WriteString(c.HelpUsage[i])
-			u.WriteByte('\n')
-		}
-	}
+	helpWriteHeader(&u, c)
+	helpWriteUsageLines(&u, c)
 
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.Opts)
@@ -136,18 +114,9 @@ func DefaultShortHelp(c *CommandInfo) string {
 	if len(c.Args) > 0 {
 		u.WriteString("\narguments:\n")
 
-		var argNameColWidth int
-		for i := range c.Args {
-			argName := c.Args[i].ID
-			if c.Args[i].ValueName != "" {
-				argName = c.Args[i].ValueName
-			}
-			if l := len(argName); l > argNameColWidth && l <= helpShortMsgMaxFirstColLen {
-				argNameColWidth = l
-			}
-		}
-		argNameColWidth += 2
-		for _, a := range c.Args {
+		argNames := make([]string, len(c.Args))
+		argNameColWidth := 0
+		for i, a := range c.Args {
 			argName := a.ID
 			if a.ValueName != "" {
 				argName = a.ValueName
@@ -157,7 +126,12 @@ func DefaultShortHelp(c *CommandInfo) string {
 			} else {
 				argName = "[" + argName + "]"
 			}
-			paddedNameAndArg := fmt.Sprintf("  %-*s", argNameColWidth, argName)
+			argNames[i] = argName
+			if l := len(argName); l > argNameColWidth {
+				argNameColWidth = l
+			}
+		}
+		for i, a := range c.Args {
 			desc := a.HelpBlurb
 			if a.IsRequired {
 				desc += " (required)"
@@ -168,14 +142,16 @@ func DefaultShortHelp(c *CommandInfo) string {
 			if a.EnvVar != "" {
 				desc += " [$" + a.EnvVar + "]"
 			}
-			content := paddedNameAndArg
-			if len(paddedNameAndArg) > helpShortMsgMaxFirstColLen {
-				content += "\n" + strings.Repeat(" ", argNameColWidth+5)
+
+			var content string
+			if argNameColWidth > helpShortMsgMaxFirstColLen {
+				u.WriteString("  " + argNames[i])
+				u.WriteString("\n" + strings.Repeat(" ", 5))
+				u.WriteString(wrapBlurb(desc, 5, helpMsgTextWidth))
 			} else {
-				content += "   "
+				fmt.Fprintf(&u, "  %-*s   ", argNameColWidth, argNames[i])
+				u.WriteString(wrapBlurb(desc, len(content)+3, helpMsgTextWidth))
 			}
-			content += wrapBlurb(desc, len(paddedNameAndArg)+3, helpMsgTextWidth)
-			u.WriteString(content)
 			u.WriteByte('\n')
 		}
 	}
@@ -189,37 +165,16 @@ func DefaultShortHelp(c *CommandInfo) string {
 
 func DefaultFullHelp(c *CommandInfo) string {
 	u := strings.Builder{}
-	u.Grow((len(c.Opts) + len(c.Args) + len(c.Subcmds)) * 200)
+	u.Grow((len(c.Opts) + len(c.Args) + len(c.Subcmds)) * 500)
 
-	u.WriteString(strings.Join(c.Path, " "))
-	u.WriteString(" - ")
-	u.WriteString(c.HelpBlurb)
+	helpWriteHeader(&u, c)
 
 	if c.HelpExtra != "" {
 		u.WriteString("\n\noverview:\n")
 		u.WriteString("  " + wrapBlurb(c.HelpExtra, 2, helpMsgTextWidth))
 	}
 
-	// build default usage line or range user provided ones
-	u.WriteString("\n\nusage:\n")
-	if len(c.HelpUsage) == 0 {
-		u.WriteString("  ")
-		u.WriteString(c.Path[len(c.Path)-1])
-		u.WriteString(" [options]")
-		switch {
-		case len(c.Args) > 0:
-			u.WriteString(" [arguments]")
-		case len(c.Subcmds) > 0:
-			u.WriteString(" <command>")
-		}
-		u.WriteByte('\n')
-	} else {
-		for i := range c.HelpUsage {
-			u.WriteString("  ")
-			u.WriteString(c.HelpUsage[i])
-			u.WriteByte('\n')
-		}
-	}
+	helpWriteUsageLines(&u, c)
 
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.Opts)
@@ -357,6 +312,37 @@ func (o *InputInfo) optUsgArgName() string {
 		return "<" + o.ValueName + ">"
 	}
 	return "<arg>"
+}
+
+func helpWriteHeader(u *strings.Builder, c *CommandInfo) {
+	u.WriteString(strings.Join(c.Path, " "))
+	if c.HelpBlurb != "" {
+		u.WriteString(" - ")
+		u.WriteString(c.HelpBlurb)
+	}
+}
+
+// Build default usage line or use the user provided ones.
+func helpWriteUsageLines(u *strings.Builder, c *CommandInfo) {
+	u.WriteString("\n\nusage:\n")
+	if len(c.HelpUsage) == 0 {
+		u.WriteString("  ")
+		u.WriteString(c.Path[len(c.Path)-1])
+		u.WriteString(" [options]")
+		switch {
+		case len(c.Args) > 0:
+			u.WriteString(" [arguments]")
+		case len(c.Subcmds) > 0:
+			u.WriteString(" <command>")
+		}
+		u.WriteByte('\n')
+	} else {
+		for i := range c.HelpUsage {
+			u.WriteString("  ")
+			u.WriteString(c.HelpUsage[i])
+			u.WriteByte('\n')
+		}
+	}
 }
 
 func helpWriteSubcmds(u *strings.Builder, c *CommandInfo) {

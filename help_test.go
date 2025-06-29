@@ -12,6 +12,7 @@ func TestDefaultHelps(t *testing.T) {
 		{
 			Case: ttCase(),
 			cmdInfo: New().
+				Help("test example").
 				Opt(NewOpt("lorem").
 					Short('l').
 					Required().
@@ -19,7 +20,7 @@ func TestDefaultHelps(t *testing.T) {
 				Opt(NewOpt("enim-ad-minim").
 					Required().
 					Help("veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")),
-			expectedShort: `cli.test - 
+			expectedShort: `cli.test - test example
 
 usage:
   cli.test [options]
@@ -34,7 +35,7 @@ options:
       ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
       ut labore et dolore magna aliqua. (required)
 `,
-			expectedFull: `cli.test - 
+			expectedFull: `cli.test - test example
 
 usage:
   cli.test [options]
@@ -50,6 +51,47 @@ options:
   -l, --lorem  <arg>   (required)
       ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
       ut labore et dolore magna aliqua.
+`,
+		},
+		{
+			Case: ttCase(),
+			cmdInfo: New().
+				Arg(NewArg("lorem").
+					Required().
+					Help("ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")).
+				Arg(NewArg("enim-ut-ad-minim-veniam").
+					Help("quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")),
+			expectedShort: `cli.test
+
+usage:
+  cli.test [options] [arguments]
+
+options:
+  -h, --help   Show this help message and exit.
+
+arguments:
+  <lorem>
+     ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+     ut labore et dolore magna aliqua. (required)
+  [enim-ut-ad-minim-veniam]
+     quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+`,
+			expectedFull: `cli.test
+
+usage:
+  cli.test [options] [arguments]
+
+options:
+  -h, --help
+      Show this help message and exit.
+
+arguments:
+  <lorem>   (required)
+      ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+      ut labore et dolore magna aliqua.
+
+  [enim-ut-ad-minim-veniam]
+      quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 `,
 		},
 	} {

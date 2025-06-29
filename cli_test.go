@@ -389,7 +389,7 @@ func TestParsing(t *testing.T) {
 					Case: ttCase(),
 					args: []string{"one", "-h"},
 					expErr: HelpRequestError{
-						HelpMsg: "cmd one - \n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
+						HelpMsg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
 					},
 				},
 				{
