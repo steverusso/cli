@@ -284,7 +284,52 @@ func TestParsing(t *testing.T) {
 				},
 			},
 		},
-		// subcommands (with missing or uknown error checks)
+		// ensure '-' can be a positional argument
+		{
+			name: "hyphensc",
+			cmd: NewCmd("cmd").
+				Opt(NewOpt("a")).
+				Arg(NewArg("arg1")),
+			variations: []testInputOutput{
+				{
+					Case: ttCase(),
+					args: []string{"-aA", "-", "-bB"},
+					expected: Command{
+						Inputs: []Input{
+							{ID: "a", From: ParsedFrom{Opt: "a"}, RawValue: "A", Value: "A"},
+							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "-", Value: "-"},
+						},
+						Surplus: []string{"-bB"},
+					},
+				},
+			},
+		},
+		// ensure '-' can be a subcommand
+		{
+			name: "hyphensc",
+			cmd: NewCmd("cmd").
+				Opt(NewOpt("a")).
+				Subcmd(NewCmd("-").
+					Opt(NewOpt("b"))),
+			variations: []testInputOutput{
+				{
+					Case: ttCase(),
+					args: []string{"-aA", "-", "-bB"},
+					expected: Command{
+						Inputs: []Input{
+							{ID: "a", From: ParsedFrom{Opt: "a"}, RawValue: "A", Value: "A"},
+						},
+						Subcmd: &Command{
+							Name: "-",
+							Inputs: []Input{
+								{ID: "b", From: ParsedFrom{Opt: "b"}, RawValue: "B", Value: "B"},
+							},
+						},
+					},
+				},
+			},
+		},
+		// subcommands (with missing or unknown error checks)
 		{
 			name: "subcommands",
 			cmd: NewCmd("cmd").
@@ -301,6 +346,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"one", "--bb", "B"},
 					expected: Command{
 						Subcmd: &Command{
+							Name: "one",
 							Inputs: []Input{
 								{ID: "bb", From: ParsedFrom{Opt: "bb"}, RawValue: "B", Value: "B"},
 							},
@@ -312,6 +358,7 @@ func TestParsing(t *testing.T) {
 					args: []string{"two", "--dd", "D"},
 					expected: Command{
 						Subcmd: &Command{
+							Name: "two",
 							Inputs: []Input{
 								{ID: "dd", From: ParsedFrom{Opt: "dd"}, RawValue: "D", Value: "D"},
 							},
@@ -497,17 +544,21 @@ func TestParsing(t *testing.T) {
 func cmpParsed(t *testing.T, tioInfo string, exp, got *Command) {
 	t.Helper()
 
+	// command name
+	if got.Name != exp.Name {
+		t.Errorf("%s:\nexpected command name '%s', got '%s'", tioInfo, exp.Name, got.Name)
+	}
 	// inputs
 	{
 		gotNumInputs := len(got.Inputs)
 		expNumInputs := len(exp.Inputs)
 		if gotNumInputs != expNumInputs {
-			t.Fatalf("%s: expected %d parsed options, got %d", tioInfo, expNumInputs, gotNumInputs)
+			t.Fatalf("%s: expected %d parsed inputs, got %d", tioInfo, expNumInputs, gotNumInputs)
 		}
 		for i, gotOpt := range got.Inputs {
 			expOpt := exp.Inputs[i]
 			if !reflect.DeepEqual(gotOpt, expOpt) {
-				t.Errorf("%s: parsed options[%d]:\nexpected %+#v\n     got %+#v", tioInfo, i, expOpt, gotOpt)
+				t.Errorf("%s: parsed inputs[%d]:\nexpected %+#v\n     got %+#v", tioInfo, i, expOpt, gotOpt)
 			}
 		}
 	}
