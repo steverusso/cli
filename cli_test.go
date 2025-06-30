@@ -442,6 +442,17 @@ func TestParsing(t *testing.T) {
 				},
 				{
 					Case: ttCase(),
+					args: []string{"-bbb"},
+					expected: Command{
+						Inputs: []Input{
+							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
+							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
+							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
+						},
+					},
+				},
+				{
+					Case: ttCase(),
 					args: []string{"-cb"},
 					expected: Command{
 						Inputs: []Input{
