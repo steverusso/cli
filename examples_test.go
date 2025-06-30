@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -97,6 +98,18 @@ func ExampleInputInfo_WithParser() {
 	fmt.Printf("%+#v\n", cli.Get[image.Point](c, "aa"))
 	// Output:
 	// image.Point{X:3, Y:7}
+}
+
+func ExampleInputInfo_Env() {
+	os.Setenv("FLAG", "hello")
+
+	c := cli.New().
+		Opt(cli.NewOpt("flag").Env("FLAG")).
+		ParseOrExit([]string{}...)
+
+	fmt.Println(cli.Get[string](c, "flag"))
+	// Output:
+	// hello
 }
 
 func ExampleInputInfo_Long() {

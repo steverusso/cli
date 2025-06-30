@@ -279,6 +279,8 @@ func (in InputInfo) Help(blurb string) InputInfo {
 	return in
 }
 
+// Env sets the name of the environment variable for this InputInfo. The parser will parse
+// the value of that environment variable for this input if it is set.
 func (in InputInfo) Env(e string) InputInfo {
 	in.EnvVar = e
 	return in
