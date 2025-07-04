@@ -239,6 +239,13 @@ func GetAllSeq[T any](c *Command, id string) iter.Seq[T] {
 	}
 }
 
+// Fatal logs the given value to Stderr prefixed by "error: "
+// and then exits the program with the given code.
+func Fatal(code int, v any) {
+	fmt.Fprintf(os.Stderr, "error: %v\n", v)
+	os.Exit(code)
+}
+
 // ParseOrExit will parse input based on this CommandInfo. If help was requested, it
 // will print the help message and exit the program successfully (status code 0). If
 // there is any other error, it will print the error and exit the program with failure
@@ -254,8 +261,7 @@ func (in CommandInfo) ParseTheseOrExit(args ...string) *Command {
 			fmt.Print(e.HelpMsg)
 			os.Exit(0)
 		} else {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
+			Fatal(1, err)
 		}
 	}
 	return c
