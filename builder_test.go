@@ -115,7 +115,7 @@ func TestBuilder(t *testing.T) {
 					NewCmd("root").
 						Opt(NewOpt("aa").Short('a')).
 						Opt(NewOpt("bb").Short('b')).
-						ParseOrExit([]string{}...)
+						ParseTheseOrExit()
 				},
 				func() {
 					NewCmd("root").

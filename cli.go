@@ -243,8 +243,12 @@ func GetAllSeq[T any](c *Command, id string) iter.Seq[T] {
 // will print the help message and exit the program successfully (status code 0). If
 // there is any other error, it will print the error and exit the program with failure
 // (status code 1). The input parameter semantics are the same as [CommandInfo.Parse].
-func (in CommandInfo) ParseOrExit(args ...string) *Command {
-	c, err := in.Parse(args...)
+func (in CommandInfo) ParseOrExit() *Command {
+	return in.ParseTheseOrExit(os.Args[1:]...)
+}
+
+func (in CommandInfo) ParseTheseOrExit(args ...string) *Command {
+	c, err := in.ParseThese(args...)
 	if err != nil {
 		if e, ok := err.(HelpRequestError); ok {
 			fmt.Print(e.HelpMsg)
@@ -259,13 +263,14 @@ func (in CommandInfo) ParseOrExit(args ...string) *Command {
 
 // ParseOrExit will parse input based on this CommandInfo. If no function arguments
 // are provided, the [os.Args] will be used.
-func (in *CommandInfo) Parse(args ...string) (*Command, error) {
+func (in *CommandInfo) Parse() (*Command, error) {
+	return in.ParseThese(os.Args[1:]...)
+}
+
+func (in *CommandInfo) ParseThese(args ...string) (*Command, error) {
 	if !in.isPrepped {
 		in.prepareAndValidate()
 		in.isPrepped = true
-	}
-	if args == nil {
-		args = os.Args[1:]
 	}
 	c := &Command{
 		Inputs: make([]Input, 0, len(args)),

@@ -16,10 +16,10 @@ func ExampleInputInfo_Short() {
 	in := cli.New().
 		Opt(cli.NewOpt("flag").Short('f'))
 
-	c1 := in.ParseOrExit("-f", "hello")
+	c1 := in.ParseTheseOrExit("-f", "hello")
 	fmt.Println(cli.Get[string](c1, "flag"))
 
-	c2 := in.ParseOrExit("--flag", "world")
+	c2 := in.ParseTheseOrExit("--flag", "world")
 	fmt.Println(cli.Get[string](c2, "flag"))
 	// Output:
 	// hello
@@ -30,10 +30,10 @@ func ExampleInputInfo_ShortOnly() {
 	in := cli.New().
 		Opt(cli.NewOpt("flag").ShortOnly('f'))
 
-	c := in.ParseOrExit("-f", "hello")
+	c := in.ParseTheseOrExit("-f", "hello")
 	fmt.Println(cli.Get[string](c, "flag"))
 
-	_, err := in.Parse("--flag", "helloworld")
+	_, err := in.ParseThese("--flag", "helloworld")
 	fmt.Println(err)
 	// Output:
 	// hello
@@ -45,7 +45,7 @@ func ExampleInputInfo_WithValueName_option() {
 		Help("example program").
 		Opt(cli.NewOpt("aa").WithValueName("str").Help("it says '<str>' above instead of '<arg>'"))
 
-	_, err := in.Parse("--help")
+	_, err := in.ParseThese("--help")
 	fmt.Println(err)
 	// Output:
 	// example - example program
@@ -66,7 +66,7 @@ func ExampleInputInfo_WithValueName_positionalArgument() {
 		Help("example program").
 		Arg(cli.NewArg("aa").WithValueName("filename").Help("it says '[filename]' above instead of '[aa]'"))
 
-	_, err := in.Parse("--help")
+	_, err := in.ParseThese("--help")
 	fmt.Println(err)
 	// Output:
 	// example - example program
@@ -93,7 +93,7 @@ func ExampleInputInfo_WithParser() {
 
 	c := cli.New().
 		Opt(cli.NewOpt("aa").WithParser(pointParser)).
-		ParseOrExit("--aa", "3,7")
+		ParseTheseOrExit("--aa", "3,7")
 
 	fmt.Printf("%+#v\n", cli.Get[image.Point](c, "aa"))
 	// Output:
@@ -105,7 +105,7 @@ func ExampleInputInfo_Env() {
 
 	c := cli.New().
 		Opt(cli.NewOpt("flag").Env("FLAG")).
-		ParseOrExit([]string{}...)
+		ParseTheseOrExit()
 
 	fmt.Println(cli.Get[string](c, "flag"))
 	// Output:
@@ -118,7 +118,7 @@ func ExampleInputInfo_Long() {
 		Opt(cli.NewOpt("id1").Help("long name is the id by default")).
 		Opt(cli.NewOpt("id2").Long("long-name").Help("long name is set to something other than the id"))
 
-	_, err := in.Parse("-h")
+	_, err := in.ParseThese("-h")
 	fmt.Println(err)
 	// Output:
 	// example - example program
@@ -136,10 +136,10 @@ func ExampleParseURL() {
 	in := cli.New().
 		Opt(cli.NewOpt("u").WithParser(cli.ParseURL))
 
-	c := in.ParseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
+	c := in.ParseTheseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
 	fmt.Println(cli.Get[*url.URL](c, "u"))
 
-	_, err := in.Parse("-u", "b@d://.com")
+	_, err := in.ParseThese("-u", "b@d://.com")
 	fmt.Println(err)
 	// Output:
 	// https://pkg.go.dev/github.com/steverusso/cli#ParseURL
@@ -150,10 +150,10 @@ func ExampleParseDuration() {
 	in := cli.New().
 		Opt(cli.NewOpt("d").WithParser(cli.ParseDuration))
 
-	c := in.ParseOrExit("-d", "1h2m3s")
+	c := in.ParseTheseOrExit("-d", "1h2m3s")
 	fmt.Println(cli.Get[time.Duration](c, "d"))
 
-	_, err := in.Parse("-d", "not_a_duration")
+	_, err := in.ParseThese("-d", "not_a_duration")
 	fmt.Println(err)
 	// Output:
 	// 1h2m3s
@@ -164,10 +164,10 @@ func ExampleNewTimeParser() {
 	in := cli.New().
 		Opt(cli.NewOpt("t").WithParser(cli.NewTimeParser("2006-01-02")))
 
-	c := in.ParseOrExit("-t", "2025-04-12")
+	c := in.ParseTheseOrExit("-t", "2025-04-12")
 	fmt.Println(cli.Get[time.Time](c, "t"))
 
-	_, err := in.Parse("-t", "hello")
+	_, err := in.ParseThese("-t", "hello")
 	fmt.Println(err)
 	// Output:
 	// 2025-04-12 00:00:00 +0000 UTC
@@ -179,7 +179,7 @@ func ExampleNewFileParser() {
 		Opt(cli.NewOpt("i").WithParser(cli.NewFileParser(cli.ParseInt))).
 		Opt(cli.NewOpt("s").WithParser(cli.NewFileParser(nil)))
 
-	c, _ := in.Parse(
+	c, _ := in.ParseThese(
 		"-i", "testdata/sample_int",
 		"-s", "testdata/sample_int",
 	)
@@ -187,10 +187,10 @@ func ExampleNewFileParser() {
 	fmt.Println(cli.Get[int](c, "i"))
 	fmt.Printf("%q\n", cli.Get[string](c, "s"))
 
-	_, err := in.Parse("-i", "testdata/sample_empty")
+	_, err := in.ParseThese("-i", "testdata/sample_empty")
 	fmt.Println(err)
 
-	_, err = in.Parse("-i", "path_that_doesnt_exist")
+	_, err = in.ParseThese("-i", "path_that_doesnt_exist")
 	fmt.Println(err)
 	// Output:
 	// 12345
@@ -202,7 +202,7 @@ func ExampleNewFileParser() {
 func ExampleCommandInfo_Arg() {
 	c := cli.New().
 		Arg(cli.NewArg("name")).
-		ParseOrExit("alice")
+		ParseTheseOrExit("alice")
 
 	fmt.Println(cli.Get[string](c, "name"))
 	// Output:
@@ -212,7 +212,7 @@ func ExampleCommandInfo_Arg() {
 func ExampleCommandInfo_Opt() {
 	c := cli.New().
 		Opt(cli.NewOpt("a")).
-		ParseOrExit("-a", "hello")
+		ParseTheseOrExit("-a", "hello")
 
 	fmt.Println(cli.Get[string](c, "a"))
 	// Output:
@@ -224,7 +224,7 @@ func ExampleCommandInfo_ExtraHelp() {
 		Help("an example command").
 		ExtraHelp("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")
 
-	_, err := in.Parse("--help")
+	_, err := in.ParseThese("--help")
 	fmt.Println(err)
 	// Output:
 	// example - an example command
@@ -247,13 +247,13 @@ func ExampleInputInfo_Required_option() {
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b").Required())
 
-	c, _ := in.Parse("-a", "hello", "-b", "world")
+	c, _ := in.ParseThese("-a", "hello", "-b", "world")
 	fmt.Println(
 		cli.Get[string](c, "a"),
 		cli.Get[string](c, "b"),
 	)
 
-	_, err := in.Parse([]string{}...)
+	_, err := in.ParseThese()
 	fmt.Println(err)
 	// Output:
 	// hello world
@@ -265,13 +265,13 @@ func ExampleInputInfo_Required_postionalArgument() {
 		Arg(cli.NewArg("a").Required()).
 		Arg(cli.NewArg("b"))
 
-	c, _ := in.Parse("hello", "world")
+	c, _ := in.ParseThese("hello", "world")
 	fmt.Println(
 		cli.Get[string](c, "a"),
 		cli.Get[string](c, "b"),
 	)
 
-	_, err := in.Parse([]string{}...)
+	_, err := in.ParseThese()
 	fmt.Println(err)
 	// Output:
 	// hello world
@@ -287,7 +287,7 @@ func ExampleCommandInfo_Usage() {
 		).
 		Opt(cli.NewOpt("aa").Help("an option"))
 
-	_, err := in.Parse("--help")
+	_, err := in.ParseThese("--help")
 	fmt.Println(err)
 	// Output:
 	// example - an example command
@@ -318,7 +318,7 @@ func ExampleDefaultFullHelp() {
 				return cli.DefaultFullHelp(c)
 			}))
 
-	_, err := in.Parse("-h")
+	_, err := in.ParseThese("-h")
 	fmt.Println(err)
 	// Output:
 	// example - an example command
@@ -358,7 +358,7 @@ func ExampleDefaultShortHelp_simple() {
 				return cli.DefaultShortHelp(c)
 			}))
 
-	_, err := in.Parse("-h")
+	_, err := in.ParseThese("-h")
 	fmt.Println(err)
 	// Output:
 	// example - an example command
@@ -389,7 +389,7 @@ func ExampleDefaultShortHelp_simpleWithSubcommands() {
 				return cli.DefaultShortHelp(c)
 			}))
 
-	_, err := in.Parse("-h")
+	_, err := in.ParseThese("-h")
 	fmt.Println(err)
 	// Output:
 	// example - an example command
@@ -425,7 +425,7 @@ func ExampleDefaultShortHelp_complex() {
 				return cli.DefaultShortHelp(c)
 			}))
 
-	_, err := in.Parse("-h")
+	_, err := in.ParseThese("-h")
 	fmt.Println(err)
 	// Output:
 	// example - an example command
@@ -454,7 +454,7 @@ func ExampleGet_option() {
 	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
-		ParseOrExit("-b=hello")
+		ParseTheseOrExit("-b=hello")
 
 	// The following line would panic because 'a' isn't present.
 	// a := cli.Get[string](c, "a")
@@ -469,7 +469,7 @@ func ExampleGetOr_option() {
 	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
-		ParseOrExit("-a=hello")
+		ParseTheseOrExit("-a=hello")
 
 	a := cli.Get[string](c, "a")
 	b := cli.GetOr(c, "b", "world")
@@ -485,7 +485,7 @@ func ExampleLookup_option() {
 	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
-		ParseOrExit("-b=hello")
+		ParseTheseOrExit("-b=hello")
 
 	a, hasA := cli.Lookup[string](c, "a")
 	b, hasB := cli.Lookup[string](c, "b")
@@ -501,7 +501,7 @@ func ExampleGet_positionalArgs() {
 	c := cli.New().
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
-		ParseOrExit("hello")
+		ParseTheseOrExit("hello")
 
 	// The following line would panic because 'a' isn't present.
 	// b := cli.Get[string](c, "b")
@@ -516,7 +516,7 @@ func ExampleGetOr_positionlArgs() {
 	c := cli.New().
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
-		ParseOrExit("hello")
+		ParseTheseOrExit("hello")
 
 	a := cli.Get[string](c, "a")
 	b := cli.GetOr(c, "b", "world")
@@ -532,7 +532,7 @@ func ExampleGetOrFunc() {
 	c := cli.New().
 		Opt(cli.NewOpt("a")).
 		Opt(cli.NewOpt("b")).
-		ParseOrExit("-a", "hello")
+		ParseTheseOrExit("-a", "hello")
 
 	a := cli.GetOr(c, "a", "")
 	b := cli.GetOrFunc(c, "b", func() string {
@@ -550,7 +550,7 @@ func ExampleLookup_positionalArgs() {
 	c := cli.New().
 		Arg(cli.NewArg("a")).
 		Arg(cli.NewArg("b")).
-		ParseOrExit("hello")
+		ParseTheseOrExit("hello")
 
 	a, hasA := cli.Lookup[string](c, "a")
 	b, hasB := cli.Lookup[string](c, "b")
@@ -565,7 +565,7 @@ func ExampleLookup_positionalArgs() {
 func ExampleGetAll() {
 	c := cli.New().
 		Opt(cli.NewIntOpt("a").Default("0")).
-		ParseOrExit("-a", "1", "-a", "2", "-a", "3")
+		ParseTheseOrExit("-a", "1", "-a", "2", "-a", "3")
 
 	a := cli.GetAll[int](c, "a")
 
@@ -577,7 +577,7 @@ func ExampleGetAll() {
 func ExampleGetAllSeq() {
 	c := cli.New().
 		Opt(cli.NewOpt("a").Default("Lorem")).
-		ParseOrExit(
+		ParseTheseOrExit(
 			"-a", "ipsum",
 			"-a", "dolor",
 			"-a", "sit",

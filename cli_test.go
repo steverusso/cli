@@ -531,7 +531,7 @@ func TestParsing(t *testing.T) {
 					t.Setenv(k, v)
 				}
 
-				got, gotErr := tt.cmd.Parse(tio.args...)
+				got, gotErr := tt.cmd.ParseThese(tio.args...)
 				if tio.expErr != nil && gotErr == nil {
 					t.Fatalf("expected error %[1]T: %[1]v, got no error", tio.expErr)
 				}
@@ -656,7 +656,7 @@ func TestOptLookups(t *testing.T) {
 
 	// with both options present
 	{
-		c := in.ParseOrExit("-ahello", "-bworld")
+		c := in.ParseTheseOrExit("-ahello", "-bworld")
 		// straight getting the opts
 		{
 			optA := Get[string](c, "a")
@@ -683,7 +683,7 @@ func TestOptLookups(t *testing.T) {
 
 	// with only the first option 'a' present
 	{
-		c := in.ParseOrExit("-ahello")
+		c := in.ParseTheseOrExit("-ahello")
 		// first one should be there, second one shouldn't
 		{
 			optA, ok := Lookup[string](c, "a")
@@ -740,7 +740,7 @@ func TestOptLookups(t *testing.T) {
 
 	// with both options present
 	{
-		c := in.ParseOrExit("-ahello", "-bworld")
+		c := in.ParseTheseOrExit("-ahello", "-bworld")
 		// straight getting the opts
 		{
 			optA := Get[string](c, "a")
@@ -767,7 +767,7 @@ func TestOptLookups(t *testing.T) {
 
 	// with only the first option 'a' provided
 	{
-		c := in.ParseOrExit("-ahello")
+		c := in.ParseTheseOrExit("-ahello")
 		// first one should be there, second one default
 		{
 			optA, ok := Lookup[string](c, "a")
@@ -812,7 +812,7 @@ func TestArgLookups(t *testing.T) {
 
 	// with both args present
 	{
-		c := in.ParseOrExit("hello", "world")
+		c := in.ParseTheseOrExit("hello", "world")
 		// straight getting the args
 		{
 			arg1 := Get[string](c, "arg1")
@@ -839,7 +839,7 @@ func TestArgLookups(t *testing.T) {
 
 	// with only the first arg 'arg1' present
 	{
-		c := in.ParseOrExit("hello")
+		c := in.ParseTheseOrExit("hello")
 		// first one should be there, second one shouldn't
 		{
 			arg1, ok := Lookup[string](c, "arg1")
@@ -933,7 +933,7 @@ options:
 `,
 		},
 	} {
-		_, err := tt.cmd.Parse(tt.cliArgs...)
+		_, err := tt.cmd.ParseThese(tt.cliArgs...)
 		gotHelpMsg := err.Error()
 		if gotHelpMsg != tt.expHelpMsg {
 			t.Errorf("%s: expected:\n%s\ngot:\n%s", tt.Case, tt.expHelpMsg, gotHelpMsg)
