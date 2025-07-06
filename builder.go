@@ -274,6 +274,7 @@ func (in InputInfo) Long(name string) InputInfo {
 	return in
 }
 
+// Help sets the brief help blurb for this option or positional argument.
 func (in InputInfo) Help(blurb string) InputInfo {
 	in.HelpBlurb = blurb
 	return in

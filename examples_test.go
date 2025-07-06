@@ -40,6 +40,24 @@ func ExampleInputInfo_ShortOnly() {
 	// unknown option '--flag'
 }
 
+func ExampleInputInfo_Help() {
+	in := cli.New("example").
+		Help("example program").
+		Opt(cli.NewOpt("aa").Help("a short one or two sentence blurb"))
+
+	_, err := in.ParseThese("-h")
+	fmt.Println(err)
+	// Output:
+	// example - example program
+	//
+	// usage:
+	//   example [options]
+	//
+	// options:
+	//       --aa  <arg>   a short one or two sentence blurb
+	//   -h, --help        Show this help message and exit.
+}
+
 func ExampleInputInfo_WithValueName_option() {
 	in := cli.New("example").
 		Help("example program").
