@@ -108,7 +108,7 @@ type CommandInfo struct {
 
 type InputInfo struct {
 	ID         string
-	NameShort  string
+	NameShort  byte
 	NameLong   string
 	HelpBlurb  string
 	EnvVar     string
@@ -293,7 +293,7 @@ func (h HelpRequestError) Error() string {
 	return h.HelpMsg
 }
 
-func lookupOptionByShortName(in *CommandInfo, shortName string) *InputInfo {
+func lookupOptionByShortName(in *CommandInfo, shortName byte) *InputInfo {
 	for i := range in.Opts {
 		if in.Opts[i].NameShort == shortName {
 			return &in.Opts[i]
@@ -392,7 +392,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		// which would be handled by the rest of the option parsing code in this loop.
 		if arg[0] != '-' && len(arg) > 1 && arg[1] != '=' {
 			for charIdx := range arg {
-				optName := string(arg[charIdx])
+				optName := arg[charIdx]
 				optInfo := lookupOptionByShortName(c, optName)
 				if optInfo == nil {
 					return UnknownOptionError{Name: "-" + string(arg[charIdx])}
@@ -411,7 +411,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 						if i < len(args) {
 							rawValue = args[i]
 						} else {
-							return MissingOptionValueError{Name: optName}
+							return MissingOptionValueError{Name: string(optName)}
 						}
 					} else {
 						rawValue = arg[charIdx+1:]
@@ -419,9 +419,9 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 					}
 				}
 
-				pi, err := newInput(optInfo, ParsedFrom{Opt: optName}, rawValue)
+				pi, err := newInput(optInfo, ParsedFrom{Opt: string(optName)}, rawValue)
 				if err != nil {
-					return fmt.Errorf("parsing option '%s': %w", optName, err)
+					return fmt.Errorf("parsing option '%c': %w", optName, err)
 				}
 
 				if optInfo.HelpGen != nil {
@@ -461,10 +461,14 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		}
 
 		var optInfo *InputInfo
-		for i := range c.Opts {
-			if name == c.Opts[i].NameShort || name == c.Opts[i].NameLong {
-				optInfo = &c.Opts[i]
-				break
+		if len(name) == 1 {
+			optInfo = lookupOptionByShortName(c, name[0])
+		} else {
+			for i := range c.Opts {
+				if name == c.Opts[i].NameLong {
+					optInfo = &c.Opts[i]
+					break
+				}
 			}
 		}
 		if optInfo == nil {
@@ -508,7 +512,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				if c.Opts[i].NameLong != "" {
 					name = "--" + c.Opts[i].NameLong
 				} else {
-					name = "-" + c.Opts[i].NameShort
+					name = "-" + string(c.Opts[i].NameShort)
 				}
 				missing = append(missing, name)
 			}

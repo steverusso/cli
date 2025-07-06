@@ -76,9 +76,9 @@ func (c *CommandInfo) prepareAndValidate() {
 	for i := 0; i < len(c.Opts)-1; i++ {
 		for z := i + 1; z < len(c.Opts); z++ {
 			// assert there are no duplicate long or short option names
-			if c.Opts[i].NameShort != "" && c.Opts[i].NameShort == c.Opts[z].NameShort {
+			if c.Opts[i].NameShort != 0 && c.Opts[i].NameShort == c.Opts[z].NameShort {
 				panic("command '" + strings.Join(c.Path, " ") +
-					"' contains duplicate option short name '" + c.Opts[i].NameShort + "'")
+					"' contains duplicate option short name '" + string(c.Opts[i].NameShort) + "'")
 			}
 			if c.Opts[i].NameLong != "" && c.Opts[i].NameLong == c.Opts[z].NameLong {
 				panic("command '" + strings.Join(c.Path, " ") +
@@ -149,7 +149,7 @@ func (c CommandInfo) Usage(lines ...string) CommandInfo {
 // pattern starting with the [NewOpt] function or its siblings).
 func (c CommandInfo) Opt(o InputInfo) CommandInfo {
 	// Assert `o` is not a positional arg by making sure it has at least one option name.
-	if o.NameShort == "" && o.NameLong == "" {
+	if o.NameShort == 0 && o.NameLong == "" {
 		panic(errEmptyOptNames)
 	}
 	c.Opts = append(c.Opts, o)
@@ -254,7 +254,7 @@ func (in InputInfo) WithParser(vp ValueParser) InputInfo {
 // Short sets this option's short name to the given character. In order to create an
 // option that has a short name but no long name, see [InputInfo.ShortOnly].
 func (in InputInfo) Short(c byte) InputInfo {
-	in.NameShort = string(c)
+	in.NameShort = c
 	return in
 }
 
@@ -315,5 +315,5 @@ func (in InputInfo) WithHelpGen(hg HelpGenerator) InputInfo {
 }
 
 func (in *InputInfo) isOption() bool {
-	return in.NameShort != "" || in.NameLong != ""
+	return in.NameShort != 0 || in.NameLong != ""
 }

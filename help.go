@@ -31,8 +31,8 @@ func DefaultShortHelp(c *CommandInfo) string {
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.Opts)
 	slices.SortStableFunc(opts, func(a, b InputInfo) int {
-		nameToCmpA := a.NameShort
-		nameToCmpB := b.NameShort
+		nameToCmpA := string(a.NameShort)
+		nameToCmpB := string(b.NameShort)
 		if a.NameLong != "" {
 			nameToCmpA = a.NameLong
 		}
@@ -73,11 +73,11 @@ func DefaultShortHelp(c *CommandInfo) string {
 			}
 			var namesAndVal string
 			{
-				if o.NameShort != "" {
-					namesAndVal += "-" + o.NameShort
+				if o.NameShort != 0 {
+					namesAndVal += "-" + string(o.NameShort)
 				}
 				if o.NameLong != "" {
-					if o.NameShort != "" {
+					if o.NameShort != 0 {
 						namesAndVal += ", "
 					}
 					namesAndVal += "--" + o.NameLong
@@ -179,8 +179,8 @@ func DefaultFullHelp(c *CommandInfo) string {
 	u.WriteString("\noptions:\n")
 	opts := slices.Clone(c.Opts)
 	slices.SortStableFunc(opts, func(a, b InputInfo) int {
-		nameToCmpA := a.NameShort
-		nameToCmpB := b.NameShort
+		nameToCmpA := string(a.NameShort)
+		nameToCmpB := string(b.NameShort)
 		if a.NameLong != "" {
 			nameToCmpA = a.NameLong
 		}
@@ -200,11 +200,11 @@ func DefaultFullHelp(c *CommandInfo) string {
 
 		var usgNamesAndArg string
 		{
-			if o.NameShort != "" {
-				usgNamesAndArg += "-" + o.NameShort
+			if o.NameShort != 0 {
+				usgNamesAndArg += "-" + string(o.NameShort)
 			}
 			if o.NameLong != "" {
-				if o.NameShort != "" {
+				if o.NameShort != 0 {
 					usgNamesAndArg += ", "
 				}
 				usgNamesAndArg += "--" + o.NameLong
@@ -280,14 +280,14 @@ func DefaultFullHelp(c *CommandInfo) string {
 
 func (o *InputInfo) leftPaddedNames() string {
 	var s string
-	if o.NameShort != "" {
-		s += "-" + o.NameShort
+	if o.NameShort != 0 {
+		s += "-" + string(o.NameShort)
 	} else {
 		s += "   "
 	}
 
 	if o.NameLong != "" {
-		if o.NameShort != "" {
+		if o.NameShort != 0 {
 			s += ", "
 		} else {
 			s += " "
