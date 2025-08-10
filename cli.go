@@ -121,7 +121,8 @@ type InputInfo struct {
 	ValueName   string
 	ValueParser ValueParser
 
-	HelpGen HelpGenerator
+	HelpGen   HelpGenerator
+	Versioner Versioner
 }
 
 // ValueParser describes any function that takes a string and returns some type or an
@@ -133,6 +134,10 @@ type ValueParser = func(string) (any, error)
 // [Input] that triggered it and the [CommandInfo] of which it is a member. See
 // [DefaultHelpGenerator] for an example.
 type HelpGenerator = func(Input, *CommandInfo) string
+
+// Versioner describes any function that will return a version string based on
+// the [Input] that triggered it. See [DefaultHelpGenerator] for an example.
+type Versioner = func(Input) string
 
 // Command is a parsed command structure.
 type Command struct {
@@ -257,8 +262,8 @@ func (in CommandInfo) ParseOrExit() *Command {
 func (in CommandInfo) ParseTheseOrExit(args ...string) *Command {
 	c, err := in.ParseThese(args...)
 	if err != nil {
-		if e, ok := err.(HelpRequestError); ok {
-			fmt.Print(e.HelpMsg)
+		if e, ok := err.(HelpOrVersionRequested); ok {
+			fmt.Print(e.Msg)
 			os.Exit(0)
 		} else {
 			Fatal(1, err)
@@ -285,12 +290,12 @@ func (in *CommandInfo) ParseThese(args ...string) (*Command, error) {
 	return c, err
 }
 
-type HelpRequestError struct {
-	HelpMsg string
+type HelpOrVersionRequested struct {
+	Msg string
 }
 
-func (h HelpRequestError) Error() string {
-	return h.HelpMsg
+func (h HelpOrVersionRequested) Error() string {
+	return h.Msg
 }
 
 func lookupOptionByShortName(in *CommandInfo, shortName byte) *InputInfo {
@@ -425,8 +430,13 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				}
 
 				if optInfo.HelpGen != nil {
-					return HelpRequestError{
-						HelpMsg: optInfo.HelpGen(pi, c),
+					return HelpOrVersionRequested{
+						Msg: optInfo.HelpGen(pi, c),
+					}
+				}
+				if optInfo.Versioner != nil {
+					return HelpOrVersionRequested{
+						Msg: optInfo.Versioner(pi),
 					}
 				}
 
@@ -493,8 +503,13 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		}
 
 		if optInfo.HelpGen != nil {
-			return HelpRequestError{
-				HelpMsg: optInfo.HelpGen(pi, c),
+			return HelpOrVersionRequested{
+				Msg: optInfo.HelpGen(pi, c),
+			}
+		}
+		if optInfo.Versioner != nil {
+			return HelpOrVersionRequested{
+				Msg: optInfo.Versioner(pi),
 			}
 		}
 
@@ -586,7 +601,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 	// as no subcommand has requested a help message.
 	errFromSubcmd := parse(subcmdInfo, p.Subcmd, rest[1:])
 	if errMissingOpts != nil {
-		if _, ok := errFromSubcmd.(HelpRequestError); !ok {
+		if _, ok := errFromSubcmd.(HelpOrVersionRequested); !ok {
 			return errMissingOpts
 		}
 	}

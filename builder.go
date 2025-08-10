@@ -11,6 +11,10 @@ var DefaultHelpInput = NewBoolOpt("help").
 	Help("Show this help message and exit.").
 	WithHelpGen(DefaultHelpGenerator)
 
+var DefaultVersionOpt = NewVersionOpt('v', "version", VersionOptConfig{
+	HelpBlurb: "Print the build info version and exit",
+})
+
 var (
 	errMixingPosArgsAndSubcmds = "commands cannot have both positional args and subcommands"
 	errEmptyCmdName            = "empty command name"
@@ -313,6 +317,59 @@ func (in InputInfo) Default(v string) InputInfo {
 func (in InputInfo) WithHelpGen(hg HelpGenerator) InputInfo {
 	in.HelpGen = hg
 	return in
+}
+
+// WithVersioner will set this input's Versioner to the given [Versioner]. This will turn
+// this input into one that, similar to help inputs, causes the parsing to return a
+// [HelpOrVersionRequested] error. See [NewVersionOpt] for a convenient way to create
+// version inputs.
+func (in InputInfo) WithVersioner(ver Versioner) InputInfo {
+	in.Versioner = ver
+	return in
+}
+
+// VersionOptConfig is used to pass customization values to [NewVersionOpt].
+type VersionOptConfig struct {
+	HelpBlurb        string
+	IncludeGoVersion bool
+}
+
+// NewVersionOpt returns a input that will the Versioner field set to a function that
+// outputs information based on the given configuration values. At a minimum, the default
+// version message will always contain the Go module version obtained from
+// [debug.BuildInfo]. Version inputs, similar to help inputs, cause this library's
+// parsing to return a [HelpOrVersionRequested] error. This function will panic if the
+// given long name is empty and the given short name is either 0 or '-'.
+func NewVersionOpt(short byte, long string, cfg VersionOptConfig) InputInfo {
+	if cfg.HelpBlurb == "" {
+		cfg.HelpBlurb = "Print version info and exit."
+	}
+
+	hasShort := short != 0 && short != '-'
+
+	id := long
+	if id == "" {
+		if !hasShort {
+			panic("must provide at least either a long or short name for the version option")
+		}
+		id = string(short)
+	}
+
+	in := NewBoolOpt(id).Help(cfg.HelpBlurb)
+	if hasShort && long != "" {
+		in = in.Short(short)
+	}
+	return in.WithVersioner(func(_ Input) string {
+		bi, ok := debug.ReadBuildInfo()
+		if !ok {
+			Fatal(1, "unable to read build info")
+		}
+		ver := bi.Main.Version + "\n"
+		if cfg.IncludeGoVersion {
+			ver += bi.GoVersion + "\n"
+		}
+		return ver
+	})
 }
 
 func (in *InputInfo) isOption() bool {

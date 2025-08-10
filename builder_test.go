@@ -206,6 +206,17 @@ func TestBuilder(t *testing.T) {
 				"command 'root subcmd' contains duplicate subcommand name 'aa'",
 			},
 		},
+		{
+			name: "using NewVersionOpt with neither a short or long name",
+			builds: []func(){
+				func() { NewCmd("root").Opt(NewVersionOpt(0, "", VersionOptConfig{})) },
+				func() { NewCmd("root").Opt(NewVersionOpt('-', "", VersionOptConfig{})) },
+			},
+			expPanicVals: []any{
+				"must provide at least either a long or short name for the version option",
+				"must provide at least either a long or short name for the version option",
+			},
+		},
 	} {
 		t.Run("prevent "+tt.name, func(t *testing.T) {
 			for i, build := range tt.builds {

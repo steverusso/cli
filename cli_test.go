@@ -388,8 +388,8 @@ func TestParsing(t *testing.T) {
 				{
 					Case: ttCase(),
 					args: []string{"one", "-h"},
-					expErr: HelpRequestError{
-						HelpMsg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
+					expErr: HelpOrVersionRequested{
+						Msg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
 					},
 				},
 				{
@@ -521,6 +521,91 @@ func TestParsing(t *testing.T) {
 						},
 						Surplus: []string{"v"},
 					},
+				},
+			},
+		},
+		// versioning (on just the top level for now)
+		// using the builder method for a custom versioner
+		{
+			name: "versioning",
+			cmd: NewCmd("cmd").
+				Opt(NewOpt("a")).
+				Opt(NewBoolOpt("b")).
+				Opt(NewBoolOpt("v").WithVersioner(func(_ Input) string { return "version-string" })),
+			variations: []testInputOutput{
+				{
+					Case: ttCase(),
+					args: []string{"-v"},
+					expErr: HelpOrVersionRequested{
+						Msg: "version-string",
+					},
+				},
+				{
+					Case: ttCase(),
+					args: []string{"-a", "A"},
+					expected: Command{
+						Inputs: []Input{
+							{ID: "a", From: ParsedFrom{Opt: "a"}, RawValue: "A", Value: "A"},
+						},
+					},
+				},
+				{
+					Case: ttCase(),
+					args: []string{"-bv"},
+					expErr: HelpOrVersionRequested{
+						Msg: "version-string",
+					},
+				},
+			},
+		},
+		// versioning (on just the top level for now)
+		// using the constructor for a version option
+		{
+			name: "versioning",
+			cmd:  NewCmd("cmd").Opt(DefaultVersionOpt),
+			variations: []testInputOutput{
+				{
+					Case:   ttCase(),
+					args:   []string{"--version"},
+					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
+				},
+				{
+					Case:   ttCase(),
+					args:   []string{"-v"},
+					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
+				},
+			},
+		},
+		// versioning (on just the top level for now)
+		// using the constructor for a version option but leaving out a short name
+		{
+			name: "versioning",
+			cmd:  NewCmd("cmd").Opt(NewVersionOpt(0, "version", VersionOptConfig{})),
+			variations: []testInputOutput{
+				{
+					Case:   ttCase(),
+					args:   []string{"--version"},
+					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
+				},
+				{Case: ttCase(), args: []string{"-v"}, expErr: UnknownOptionError{Name: "-v"}},
+				{Case: ttCase(), args: []string{"-V"}, expErr: UnknownOptionError{Name: "-V"}},
+			},
+		},
+		// versioning (on just the top level for now)
+		// using the constructor for a version option but leaving out a long name
+		{
+			name: "versioning",
+			cmd:  NewCmd("cmd").Opt(NewVersionOpt('Z', "", VersionOptConfig{})),
+			variations: []testInputOutput{
+				{
+					Case:   ttCase(),
+					args:   []string{"-Z"},
+					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
+				},
+				{
+					Case:   ttCase(),
+					args:   []string{"--version"},
+					expErr: UnknownOptionError{Name: "--version"},
 				},
 			},
 		},
