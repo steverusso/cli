@@ -66,30 +66,29 @@ func DefaultShortHelp(c *CommandInfo) string {
 				desc += " (required)"
 			}
 			if o.HasStrDefault {
-				desc += fmt.Sprintf(" (default: %v)", o.StrDefault)
+				desc += " (default: " + o.StrDefault + ")"
 			}
 			if o.EnvVar != "" {
 				desc += " [$" + o.EnvVar + "]"
 			}
-			var namesAndVal string
-			{
-				if o.NameShort != 0 {
-					namesAndVal += "-" + string(o.NameShort)
-				}
-				if o.NameLong != "" {
-					if o.NameShort != 0 {
-						namesAndVal += ", "
-					}
-					namesAndVal += "--" + o.NameLong
-				}
-				if an := o.optUsgArgName(); an != "" {
-					namesAndVal += "  " + an
-				}
+
+			content := "  "
+			if o.NameShort != 0 {
+				content += "-" + string(o.NameShort)
 			}
-			content := "  " + namesAndVal
-			content += "\n" + strings.Repeat(" ", 6)
-			content += wrapBlurb(desc, 6, helpMsgTextWidth)
+			if o.NameLong != "" {
+				if o.NameShort != 0 {
+					content += ", "
+				}
+				content += "--" + o.NameLong
+			}
+			if an := o.optUsgArgName(); an != "" {
+				content += "  " + an
+			}
+
 			u.WriteString(content)
+			u.WriteString("\n" + strings.Repeat(" ", 6))
+			u.WriteString(wrapBlurb(desc, 6, helpMsgTextWidth))
 			u.WriteByte('\n')
 		}
 	} else {
@@ -99,14 +98,15 @@ func DefaultShortHelp(c *CommandInfo) string {
 				desc += " (required)"
 			}
 			if o.HasStrDefault {
-				desc += fmt.Sprintf(" (default: %v)", o.StrDefault)
+				desc += " (default: " + o.StrDefault + ")"
 			}
 			if o.EnvVar != "" {
 				desc += " [$" + o.EnvVar + "]"
 			}
-			content := fmt.Sprintf("  %-*s   ", optNameColWidth, optLeftPaddedNames[i])
-			content += wrapBlurb(desc, len(content), helpMsgTextWidth)
-			u.WriteString(content)
+			rightPadding := strings.Repeat(" ", (optNameColWidth-len(optLeftPaddedNames[i]))+3)
+			paddedNameAndVal := "  " + optLeftPaddedNames[i] + rightPadding
+			u.WriteString(paddedNameAndVal)
+			u.WriteString(wrapBlurb(desc, len(paddedNameAndVal), helpMsgTextWidth))
 			u.WriteByte('\n')
 		}
 	}
@@ -137,20 +137,21 @@ func DefaultShortHelp(c *CommandInfo) string {
 				desc += " (required)"
 			}
 			if a.HasStrDefault {
-				desc += fmt.Sprintf(" (default: %v)", a.StrDefault)
+				desc += " (default: " + a.StrDefault + ")"
 			}
 			if a.EnvVar != "" {
 				desc += " [$" + a.EnvVar + "]"
 			}
 
-			var content string
 			if argNameColWidth > helpShortMsgMaxFirstColLen {
 				u.WriteString("  " + argNames[i])
 				u.WriteString("\n" + strings.Repeat(" ", 5))
 				u.WriteString(wrapBlurb(desc, 5, helpMsgTextWidth))
 			} else {
-				fmt.Fprintf(&u, "  %-*s   ", argNameColWidth, argNames[i])
-				u.WriteString(wrapBlurb(desc, len(content)+3, helpMsgTextWidth))
+				rightPadding := strings.Repeat(" ", argNameColWidth-len(argNames[i])+3)
+				paddedNameCol := "  " + argNames[i] + rightPadding
+				u.WriteString(paddedNameCol)
+				u.WriteString(wrapBlurb(desc, len(paddedNameCol), helpMsgTextWidth))
 			}
 			u.WriteByte('\n')
 		}
@@ -192,7 +193,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 	for i, o := range opts {
 		var extra string
 		if o.HasStrDefault {
-			extra += fmt.Sprintf("\n      [default: %v]", o.StrDefault)
+			extra += "\n      [default: " + o.StrDefault + "]"
 		}
 		if o.EnvVar != "" {
 			extra += "\n      [env: " + o.EnvVar + "]"
@@ -237,7 +238,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 		for i, a := range c.Args {
 			var extra string
 			if a.HasStrDefault {
-				extra += fmt.Sprintf("\n      [default: %v]", a.StrDefault)
+				extra += "\n      [default: " + a.StrDefault + "]"
 			}
 			if a.EnvVar != "" {
 				extra += "\n      [env: " + a.EnvVar + "]"

@@ -94,6 +94,47 @@ arguments:
       quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 `,
 		},
+		{
+			Case: ttCase(),
+			cmdInfo: New().
+				Help("test example").
+				Arg(NewArg("lorem").
+					Help("ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")).
+				Arg(NewArg("enim-ad-minim").
+					Help("veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")),
+			expectedShort: `cli.test - test example
+
+usage:
+  cli.test [options] [arguments]
+
+options:
+  -h, --help   Show this help message and exit.
+
+arguments:
+  [lorem]           ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+                    tempor incididunt ut labore et dolore magna aliqua.
+  [enim-ad-minim]   veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
+                    ea commodo consequat.
+`,
+			expectedFull: `cli.test - test example
+
+usage:
+  cli.test [options] [arguments]
+
+options:
+  -h, --help
+      Show this help message and exit.
+
+arguments:
+  [lorem]
+      ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+      ut labore et dolore magna aliqua.
+
+  [enim-ad-minim]
+      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+      consequat.
+`,
+		},
 	} {
 		// Due to the current design, we have to call this in order to get the default
 		// help option inserted in (if necessary).
