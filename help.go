@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 	"unicode"
@@ -103,7 +102,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 			if o.EnvVar != "" {
 				desc += " [$" + o.EnvVar + "]"
 			}
-			rightPadding := strings.Repeat(" ", (optNameColWidth-len(optLeftPaddedNames[i]))+3)
+			rightPadding := strings.Repeat(" ", optNameColWidth-len(optLeftPaddedNames[i])+3)
 			paddedNameAndVal := "  " + optLeftPaddedNames[i] + rightPadding
 			u.WriteString(paddedNameAndVal)
 			u.WriteString(wrapBlurb(desc, len(paddedNameAndVal), helpMsgTextWidth))
@@ -158,7 +157,20 @@ func DefaultShortHelp(c *CommandInfo) string {
 	}
 
 	if len(c.Subcmds) > 0 {
-		helpWriteSubcmds(&u, c)
+		var maxCmdNameLen int
+		for i := range c.Subcmds {
+			if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
+				maxCmdNameLen = n
+			}
+		}
+
+		u.WriteString("\ncommands:\n")
+		for i := range c.Subcmds {
+			rightPadding := strings.Repeat(" ", maxCmdNameLen-len(c.Subcmds[i].Name)+3)
+			paddedNameCol := "   " + c.Subcmds[i].Name + rightPadding
+			u.WriteString(paddedNameCol)
+			u.WriteString(wrapBlurb(c.Subcmds[i].HelpBlurb, len(paddedNameCol), helpMsgTextWidth) + "\n")
+		}
 	}
 
 	return u.String()
@@ -273,7 +285,37 @@ func DefaultFullHelp(c *CommandInfo) string {
 	}
 
 	if len(c.Subcmds) > 0 {
-		helpWriteSubcmds(&u, c)
+		var maxCmdNameLen int
+		var maxCmdBlurbLen int
+		for i := range c.Subcmds {
+			if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
+				maxCmdNameLen = n
+			}
+			if n := len(c.Subcmds[i].HelpBlurb); n > maxCmdBlurbLen {
+				maxCmdBlurbLen = n
+			}
+		}
+
+		doNonCondensed := maxCmdNameLen > helpShortMsgMaxFirstColLen ||
+			maxCmdBlurbLen > (helpMsgTextWidth-maxCmdNameLen-6)
+
+		u.WriteString("\ncommands:\n")
+		for i := range c.Subcmds {
+			if doNonCondensed {
+				u.WriteString("   ")
+				u.WriteString(c.Subcmds[i].Name)
+				u.WriteString("\n      ")
+				u.WriteString(wrapBlurb(c.Subcmds[i].HelpBlurb, 6, helpMsgTextWidth))
+				u.WriteByte('\n')
+				if i < len(c.Subcmds)-1 {
+					u.WriteByte('\n')
+				}
+			} else {
+				rightPadding := strings.Repeat(" ", maxCmdNameLen-len(c.Subcmds[i].Name)+3)
+				paddedNameCol := "   " + c.Subcmds[i].Name + rightPadding
+				u.WriteString(paddedNameCol + c.Subcmds[i].HelpBlurb + "\n")
+			}
+		}
 	}
 
 	return u.String()
@@ -343,20 +385,6 @@ func helpWriteUsageLines(u *strings.Builder, c *CommandInfo) {
 			u.WriteString(c.HelpUsage[i])
 			u.WriteByte('\n')
 		}
-	}
-}
-
-func helpWriteSubcmds(u *strings.Builder, c *CommandInfo) {
-	var maxCmdNameLen int
-	for i := range c.Subcmds {
-		if n := len(c.Subcmds[i].Name); n > maxCmdNameLen {
-			maxCmdNameLen = n
-		}
-	}
-
-	u.WriteString("\ncommands:\n")
-	for i := range c.Subcmds {
-		fmt.Fprintf(u, "   %-*s   %s\n", maxCmdNameLen, c.Subcmds[i].Name, c.Subcmds[i].HelpBlurb)
 	}
 }
 
