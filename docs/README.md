@@ -12,7 +12,6 @@ go get github.com/steverusso/cli@latest
 * There are **zero** external dependencies.
 * No required project / file layout or recommended use of a generator.
 * No reflection.
-* Fully POSIX-compliant flags (including short & long versions). (TODO reword and check if true)
 * Inputs can additionally be parsed from environment variables and / or default values.
 * Nested subcommands.
 * Clean, well-formatted help messages by default.

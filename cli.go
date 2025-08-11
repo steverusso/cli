@@ -53,16 +53,16 @@
 //
 // The following are some common ways of how options can be provided:
 //
-//	--opt      // long form boolean option
-//	--opt=v    // long form non-boolean option with value of "v"
-//	--opt v    // same as above, non-boolean options can provide their value as the next command line argument
-//	-a         // short form boolean option "a"
-//	-a -b      // two short form boolean option "a" and "b"
-//	-ab        // either same as above, or short form non-boolean option "a" with value of "b" (depends on specified command structure)
+//	--opt       // long form boolean option "opt"
+//	-o          // short form boolean option "o"
+//	--opt=val   // long form non-boolean option with value of "val"
+//	--opt val   // same as above, non-boolean options can provide their value as the next command line argument
+//	-a -b       // two short form boolean options, "a" and "b"
+//	-ab         // either same as above, or short form non-boolean option "a" with value of "b" (depends on specified command structure)
 //
 // # Basic Usage
 //
-//	p := cli.New().
+//	c := cli.New().
 //		Help("A full example program").
 //		Opt(cli.NewBoolOpt("yes").
 //			Short('y').
@@ -536,9 +536,9 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 	if len(missing) > 0 {
 		errMissingOpts = MissingOptionsError{Names: missing}
 
-		// If we are parsing positional arguments instead of subcommands, we can just
-		// return this error right now. Otherwise we have to wait to see if a subcommand
-		// requests help.
+		// If we are about to parse positional arguments instead of subcommands,
+		// we can just return this error right now. Otherwise we have to wait
+		// to see if a subcommand requests help.
 		if len(c.Subcmds) == 0 {
 			return errMissingOpts
 		}
