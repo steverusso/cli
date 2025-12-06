@@ -12,6 +12,19 @@ import (
 	"github.com/steverusso/cli"
 )
 
+func ExampleInputInfo_Default() {
+	in := cli.New().Opt(cli.NewIntOpt("flag").Default("1234"))
+
+	c1 := in.ParseTheseOrExit()
+	fmt.Println(cli.Get[int](c1, "flag")) // Default value present for 'flag' even though no CLI arg was provided.
+
+	c2 := in.ParseTheseOrExit("--flag", "5678")
+	fmt.Println(cli.Get[int](c2, "flag"))
+	// Output:
+	// 1234
+	// 5678
+}
+
 func ExampleInputInfo_Short() {
 	in := cli.New().
 		Opt(cli.NewOpt("flag").Short('f'))

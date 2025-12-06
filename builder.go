@@ -308,6 +308,11 @@ func (in InputInfo) WithValueName(name string) InputInfo {
 	return in
 }
 
+// Default sets v as the default string value for this InputInfo, which will be gathered and
+// parsed using this InputInfo's parser before any CLI arguments or environment variables.
+// This will always happen as the first step in parsing a command, so if a default value
+// is set here, then at least it will always be present meaning it's safe to use
+// [InputInfo.Get] to get its parsed value.
 func (in InputInfo) Default(v string) InputInfo {
 	in.StrDefault = v
 	in.HasStrDefault = true
