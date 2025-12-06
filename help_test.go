@@ -52,8 +52,7 @@ options:
       ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
       ut labore et dolore magna aliqua.
 `,
-		},
-		{
+		}, {
 			Case: ttCase(),
 			cmdInfo: New().
 				Arg(NewArg("lorem").
@@ -93,8 +92,7 @@ arguments:
   [enim-ut-ad-minim-veniam]
       quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 `,
-		},
-		{
+		}, {
 			Case: ttCase(),
 			cmdInfo: New().
 				Help("test example").
@@ -134,8 +132,7 @@ arguments:
       veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
       consequat.
 `,
-		},
-		{
+		}, {
 			Case: ttCase(),
 			cmdInfo: New().
 				Help("test example").

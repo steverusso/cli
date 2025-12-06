@@ -27,9 +27,9 @@ func TestParsing(t *testing.T) {
 	}
 
 	for _, tt := range []testCase{
-		// no positional args or subcommands
-		// errors for missing required opts
 		{
+			// no positional args or subcommands
+			// errors for missing required opts
 			name: "options_only",
 			cmd: NewCmd("optsonly").
 				Opt(NewBoolOpt("aa")).
@@ -49,41 +49,34 @@ func TestParsing(t *testing.T) {
 							{ID: "cc", From: ParsedFrom{Opt: "cc"}, RawValue: "v3", Value: "v3"},
 						},
 					},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"-b", "v2", "--aa"},
 					expErr: MissingOptionsError{Names: []string{"--cc"}},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"-z"},
 					expErr: UnknownOptionError{Name: "-z"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"--zz=abc"},
 					expErr: UnknownOptionError{Name: "--zz=abc"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"--bb", "B"},
 					expErr: UnknownOptionError{Name: "--bb"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"--dd"},
 					expErr: MissingOptionValueError{Name: "dd"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"-b"},
 					expErr: MissingOptionValueError{Name: "b"},
 				},
 			},
-		},
-		// all provided parsers with defaults
-		{
+		}, {
+			// all provided parsers with defaults
 			name: "provided_parsers",
 			cmd: NewCmd("pp").
 				Opt(NewBoolOpt("bool").Env("BOOL").Default("true")).
@@ -92,8 +85,8 @@ func TestParsing(t *testing.T) {
 				Opt(NewFloat32Opt("f32").Env("F32").Default("1.23")).
 				Opt(NewFloat64Opt("f64").Env("F64").Default("4.56")),
 			variations: []testInputOutput{
-				// no input, just relying on the default values
 				{
+					// no input, just relying on the default values
 					Case: ttCase(),
 					args: []string{},
 					expected: Command{
@@ -105,9 +98,8 @@ func TestParsing(t *testing.T) {
 							{ID: "f64", From: ParsedFrom{Default: true}, RawValue: "4.56", Value: float64(4.56)},
 						},
 					},
-				},
-				// input from args on top for every option
-				{
+				}, {
+					// input from args on top for every option
 					Case: ttCase(),
 					args: []string{
 						"--f32", "1.2", "--f64=4.5",
@@ -128,9 +120,8 @@ func TestParsing(t *testing.T) {
 							{ID: "bool", From: ParsedFrom{Opt: "bool"}, RawValue: "", Value: true},
 						},
 					},
-				},
-				// input from both some args and some env vars
-				{
+				}, {
+					// input from both some args and some env vars
 					Case: ttCase(),
 					envs: map[string]string{
 						"F32":  "1.2",
@@ -153,13 +144,12 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// positional arg stuff
-		// all required args but not all optional ones
-		// missing required args error
-		// args with default values
-		// surplus
-		{
+		}, {
+			// positional arg stuff
+			// all required args but not all optional ones
+			// missing required args error
+			// args with default values
+			// surplus
 			name: "posargs",
 			cmd: NewCmd("posargs").
 				Arg(NewArg("arg1").Required()).
@@ -180,8 +170,7 @@ func TestParsing(t *testing.T) {
 						},
 						Surplus: []string{"E", "F"},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"A", "B"},
 					expected: Command{
@@ -191,8 +180,7 @@ func TestParsing(t *testing.T) {
 							{ID: "arg2", From: ParsedFrom{Arg: 2}, RawValue: "B", Value: "B"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					envs: map[string]string{"ARG2": "B", "ARG4": "D"},
 					args: []string{"A"},
@@ -204,8 +192,7 @@ func TestParsing(t *testing.T) {
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					envs: map[string]string{"ARG2": "B"},
 					args: []string{"A"},
@@ -216,23 +203,20 @@ func TestParsing(t *testing.T) {
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 						},
 					},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{},
 					expErr: MissingArgsError{Names: []string{"arg1", "arg2"}},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"A"},
 					expErr: MissingArgsError{Names: []string{"arg2"}},
 				},
 			},
-		},
-		// '--' with '--posarg' after it
-		// '=' on an option with and without content
-		// mix of `--opt val`, `--opt=val`, and short names
-		{
+		}, {
+			// '--' with '--posarg' after it
+			// '=' on an option with and without content
+			// mix of `--opt val`, `--opt=val`, and short names
 			name: "dashdash_and_eq",
 			cmd: NewCmd("ddeq").
 				Opt(NewOpt("opt1").Short('o')).
@@ -247,8 +231,7 @@ func TestParsing(t *testing.T) {
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "arg1-val", Value: "arg1-val"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"--", "--opt1="},
 					expected: Command{
@@ -256,8 +239,7 @@ func TestParsing(t *testing.T) {
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "--opt1=", Value: "--opt1="},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-o=4", "--", "-rf"},
 					expected: Command{
@@ -266,13 +248,11 @@ func TestParsing(t *testing.T) {
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "-rf", Value: "-rf"},
 						},
 					},
-				},
-				{
+				}, {
 					Case:     ttCase(),
 					args:     []string{"--"},
 					expected: Command{},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"--", "v1", "s1", "s2"},
 					expected: Command{
@@ -283,9 +263,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// ensure '-' can be a positional argument
-		{
+		}, {
+			// ensure '-' can be a positional argument
 			name: "hyphensc",
 			cmd: NewCmd("cmd").
 				Opt(NewOpt("a")).
@@ -303,9 +282,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// ensure '-' can be a subcommand
-		{
+		}, {
+			// ensure '-' can be a subcommand
 			name: "hyphensc",
 			cmd: NewCmd("cmd").
 				Opt(NewOpt("a")).
@@ -328,9 +306,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// subcommands (with missing or unknown error checks)
-		{
+		}, {
+			// subcommands (with missing or unknown error checks)
 			name: "subcommands",
 			cmd: NewCmd("cmd").
 				Opt(NewBoolOpt("aa")).
@@ -352,8 +329,7 @@ func TestParsing(t *testing.T) {
 							},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"two", "--dd", "D"},
 					expected: Command{
@@ -364,21 +340,18 @@ func TestParsing(t *testing.T) {
 							},
 						},
 					},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"three", "--dd", "D"},
 					expErr: UnknownSubcmdError{Name: "three"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"--aa"},
 					expErr: ErrNoSubcmd,
 				},
 			},
-		},
-		// subcommand help won't require required values
-		{
+		}, {
+			// subcommand help won't require required values
 			name: "subcommands",
 			cmd: NewCmd("cmd").
 				Opt(NewOpt("aa").Required()).
@@ -391,16 +364,14 @@ func TestParsing(t *testing.T) {
 					expErr: HelpOrVersionRequested{
 						Msg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
 					},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"--aa=1", "one"},
 					expErr: MissingOptionsError{Names: []string{"--cc"}},
 				},
 			},
-		},
-		// custom parser
-		{
+		}, {
+			// custom parser
 			name: "custom_parser",
 			cmd: NewCmd("cp").
 				Opt(NewOpt("aa").
@@ -421,9 +392,8 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// stacking / bunching short options and their values
-		{
+		}, {
+			// stacking / bunching short options and their values
 			name: "shortstacks",
 			cmd: NewCmd("shst").
 				Opt(NewBoolOpt("bb").Short('b')).
@@ -439,8 +409,7 @@ func TestParsing(t *testing.T) {
 							{ID: "cc", From: ParsedFrom{Opt: "c"}, RawValue: "", Value: true},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-bbb"},
 					expected: Command{
@@ -450,8 +419,7 @@ func TestParsing(t *testing.T) {
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-cb"},
 					expected: Command{
@@ -460,13 +428,11 @@ func TestParsing(t *testing.T) {
 							{ID: "bb", From: ParsedFrom{Opt: "b"}, RawValue: "", Value: true},
 						},
 					},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"-cba"},
 					expErr: MissingOptionValueError{Name: "a"},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-cb", "-a", "valA"},
 					expected: Command{
@@ -476,8 +442,7 @@ func TestParsing(t *testing.T) {
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "valA", Value: "valA"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-cba", "valA"},
 					expected: Command{
@@ -487,8 +452,7 @@ func TestParsing(t *testing.T) {
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "valA", Value: "valA"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-cab"},
 					expected: Command{
@@ -497,8 +461,7 @@ func TestParsing(t *testing.T) {
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "b", Value: "b"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"--a", "v"},
 					expected: Command{
@@ -506,13 +469,11 @@ func TestParsing(t *testing.T) {
 							{ID: "aa", From: ParsedFrom{Opt: "a"}, RawValue: "v", Value: "v"},
 						},
 					},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"-bz"},
 					expErr: UnknownOptionError{Name: "-z"},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-aa", "v"},
 					expected: Command{
@@ -523,10 +484,9 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// versioning (on just the top level for now)
-		// using the builder method for a custom versioner
-		{
+		}, {
+			// versioning (on just the top level for now)
+			// using the builder method for a custom versioner
 			name: "versioning",
 			cmd: NewCmd("cmd").
 				Opt(NewOpt("a")).
@@ -539,8 +499,7 @@ func TestParsing(t *testing.T) {
 					expErr: HelpOrVersionRequested{
 						Msg: "version-string",
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-a", "A"},
 					expected: Command{
@@ -548,8 +507,7 @@ func TestParsing(t *testing.T) {
 							{ID: "a", From: ParsedFrom{Opt: "a"}, RawValue: "A", Value: "A"},
 						},
 					},
-				},
-				{
+				}, {
 					Case: ttCase(),
 					args: []string{"-bv"},
 					expErr: HelpOrVersionRequested{
@@ -557,10 +515,9 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		},
-		// versioning (on just the top level for now)
-		// using the constructor for a version option
-		{
+		}, {
+			// versioning (on just the top level for now)
+			// using the constructor for a version option
 			name: "versioning",
 			cmd:  NewCmd("cmd").Opt(DefaultVersionOpt),
 			variations: []testInputOutput{
@@ -568,17 +525,15 @@ func TestParsing(t *testing.T) {
 					Case:   ttCase(),
 					args:   []string{"--version"},
 					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"-v"},
 					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
 				},
 			},
-		},
-		// versioning (on just the top level for now)
-		// using the constructor for a version option but leaving out a short name
-		{
+		}, {
+			// versioning (on just the top level for now)
+			// using the constructor for a version option but leaving out a short name
 			name: "versioning",
 			cmd:  NewCmd("cmd").Opt(NewVersionOpt(0, "version", VersionOptConfig{})),
 			variations: []testInputOutput{
@@ -590,10 +545,9 @@ func TestParsing(t *testing.T) {
 				{Case: ttCase(), args: []string{"-v"}, expErr: UnknownOptionError{Name: "-v"}},
 				{Case: ttCase(), args: []string{"-V"}, expErr: UnknownOptionError{Name: "-V"}},
 			},
-		},
-		// versioning (on just the top level for now)
-		// using the constructor for a version option but leaving out a long name
-		{
+		}, {
+			// versioning (on just the top level for now)
+			// using the constructor for a version option but leaving out a long name
 			name: "versioning",
 			cmd:  NewCmd("cmd").Opt(NewVersionOpt('Z', "", VersionOptConfig{})),
 			variations: []testInputOutput{
@@ -601,8 +555,7 @@ func TestParsing(t *testing.T) {
 					Case:   ttCase(),
 					args:   []string{"-Z"},
 					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
-				},
-				{
+				}, {
 					Case:   ttCase(),
 					args:   []string{"--version"},
 					expErr: UnknownOptionError{Name: "--version"},
@@ -688,33 +641,27 @@ func TestCmpErrors(t *testing.T) {
 			err:      MissingOptionsError{Names: []string{"-a", "--bb"}},
 			target:   MissingOptionsError{Names: []string{"-a", "--bb"}},
 			expected: true,
-		},
-		{
+		}, {
 			err:      MissingOptionsError{Names: []string{"-a", "--bb"}},
 			target:   MissingOptionsError{Names: []string{"-c"}},
 			expected: false,
-		},
-		{
+		}, {
 			err:      MissingArgsError{Names: []string{"a", "b"}},
 			target:   MissingArgsError{Names: []string{"a", "b"}},
 			expected: true,
-		},
-		{
+		}, {
 			err:      MissingArgsError{Names: []string{"a", "b"}},
 			target:   MissingArgsError{Names: []string{"c"}},
 			expected: false,
-		},
-		{
+		}, {
 			err:      UnknownSubcmdError{Name: "a"},
 			target:   UnknownSubcmdError{Name: "a"},
 			expected: true,
-		},
-		{
+		}, {
 			err:      UnknownSubcmdError{Name: "c"},
 			target:   UnknownSubcmdError{Name: "d"},
 			expected: false,
-		},
-		{
+		}, {
 			err:      ErrNoSubcmd,
 			target:   ErrNoSubcmd,
 			expected: true,

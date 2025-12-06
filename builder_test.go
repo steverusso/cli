@@ -18,8 +18,7 @@ func TestBuilder(t *testing.T) {
 				func() { c := NewCmd("a"); c.Parse() },
 			},
 			expPanicVals: []any{nil, nil},
-		},
-		{
+		}, {
 			name: "mixing positional args and subcommands",
 			builds: []func(){
 				func() {
@@ -37,8 +36,7 @@ func TestBuilder(t *testing.T) {
 				errMixingPosArgsAndSubcmds,
 				errMixingPosArgsAndSubcmds,
 			},
-		},
-		{
+		}, {
 			name: "empty command name",
 			builds: []func(){
 				func() { NewCmd("") },
@@ -48,8 +46,7 @@ func TestBuilder(t *testing.T) {
 				errEmptyCmdName,
 				errEmptyCmdName,
 			},
-		},
-		{
+		}, {
 			name: "command name with whitespace",
 			builds: []func(){
 				func() { NewCmd(" ") },
@@ -61,8 +58,7 @@ func TestBuilder(t *testing.T) {
 				"invalid command name 'a b': cannot contain whitespace",
 				"invalid command name 'c\td': cannot contain whitespace",
 			},
-		},
-		{
+		}, {
 			name: "empty input ids",
 			builds: []func(){
 				func() { NewCmd("root").Opt(NewOpt("")) },
@@ -72,13 +68,11 @@ func TestBuilder(t *testing.T) {
 				errEmptyInputID,
 				errEmptyInputID,
 			},
-		},
-		{
+		}, {
 			name:         "empty option names",
 			builds:       []func(){func() { NewCmd("root").Opt(NewArg("a1")) }},
 			expPanicVals: []any{errEmptyOptNames},
-		},
-		{
+		}, {
 			name: "duplicate option ids",
 			builds: []func(){
 				func() {
@@ -107,8 +101,7 @@ func TestBuilder(t *testing.T) {
 				"command 'root one' contains duplicate input ids 'o1'",
 				"command 'root' contains duplicate input ids 'a1'",
 			},
-		},
-		{
+		}, {
 			name: "duplicate option short names",
 			builds: []func(){
 				func() {
@@ -135,8 +128,7 @@ func TestBuilder(t *testing.T) {
 				"command 'root' contains duplicate option short name 'a'",
 				"command 'root' contains duplicate option short name 'b'",
 			},
-		},
-		{
+		}, {
 			name: "duplicate option long names",
 			builds: []func(){
 				func() {
@@ -150,8 +142,7 @@ func TestBuilder(t *testing.T) {
 			expPanicVals: []any{
 				"command 'root' contains duplicate option long name 'aaa'",
 			},
-		},
-		{
+		}, {
 			name: "options as positional arguments",
 			builds: []func(){
 				func() { NewCmd("root").Arg(NewOpt("o1")) },
@@ -161,8 +152,7 @@ func TestBuilder(t *testing.T) {
 				errOptAsPosArg,
 				errOptAsPosArg,
 			},
-		},
-		{
+		}, {
 			name: "required positional arguments coming after optional ones",
 			builds: []func(){
 				func() {
@@ -181,8 +171,7 @@ func TestBuilder(t *testing.T) {
 				errReqArgAfterOptional,
 				errReqArgAfterOptional,
 			},
-		},
-		{
+		}, {
 			name: "duplicate subcommand names",
 			builds: []func(){
 				func() {
@@ -205,8 +194,7 @@ func TestBuilder(t *testing.T) {
 				"command 'root' contains duplicate subcommand name 'bb'",
 				"command 'root subcmd' contains duplicate subcommand name 'aa'",
 			},
-		},
-		{
+		}, {
 			name: "using NewVersionOpt with neither a short or long name",
 			builds: []func(){
 				func() { NewCmd("root").Opt(NewVersionOpt(0, "", VersionOptConfig{})) },
