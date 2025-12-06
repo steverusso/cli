@@ -157,11 +157,11 @@ func ExampleParseURL() {
 	c := in.ParseTheseOrExit("-u", "https://pkg.go.dev/github.com/steverusso/cli#ParseURL")
 	fmt.Println(cli.Get[*url.URL](c, "u"))
 
-	_, err := in.ParseThese("-u", "b@d://.com")
+	_, err := in.ParseThese("-u", "ftp://usr:pass[wd]@svr.com")
 	fmt.Println(err)
 	// Output:
 	// https://pkg.go.dev/github.com/steverusso/cli#ParseURL
-	// parsing option 'u': parse "b@d://.com": first path segment in URL cannot contain colon
+	// parsing option 'u': parse "ftp://usr:pass[wd]@svr.com": net/url: invalid userinfo
 }
 
 func ExampleParseDuration() {
