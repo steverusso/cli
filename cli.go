@@ -136,7 +136,7 @@ type ValueParser = func(string) (any, error)
 type HelpGenerator = func(Input, *CommandInfo) string
 
 // Versioner describes any function that will return a version string based on
-// the [Input] that triggered it. See [DefaultHelpGenerator] for an example.
+// the [Input] that triggered it. See [DefaultVersionOpt] for an example.
 type Versioner = func(Input) string
 
 // Command is a parsed command structure.
