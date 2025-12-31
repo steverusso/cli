@@ -12,6 +12,34 @@ import (
 	"github.com/steverusso/cli"
 )
 
+func ExampleCommandInfo_SubcmdOptional() {
+	// Simple command-with-subcommand structure. Parsing the top-level
+	// command will return an error if a subcommand isn't provided.
+	scReq := cli.New("example").
+		Help("an example program").
+		Subcmd(cli.NewCmd("cmd1"))
+
+	// Same command structure as above, except parsing will
+	// NOT return an error if a subcommand isn't provided.
+	scOpt := cli.New("example").
+		Help("an example program").
+		Subcmd(cli.NewCmd("cmd1")).
+		SubcmdOptional()
+
+	c, _ := scReq.ParseThese("cmd1")
+	fmt.Printf("have subcommand %q\n", c.Subcmd.Name)
+
+	_, err := scReq.ParseThese()
+	fmt.Println("err:", err)
+
+	c, err = scOpt.ParseThese()
+	fmt.Printf("err: %v, c.Subcmd: %v\n", err, c.Subcmd) // using c.Subcmd.Name here would panic
+	// Output:
+	// have subcommand "cmd1"
+	// err: missing subcommand
+	// err: <nil>, c.Subcmd: <nil>
+}
+
 func ExampleInputInfo_Default() {
 	in := cli.New().Opt(cli.NewIntOpt("flag").Default("1234"))
 

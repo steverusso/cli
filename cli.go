@@ -103,6 +103,8 @@ type CommandInfo struct {
 	Args      []InputInfo
 	Subcmds   []CommandInfo
 
+	IsSubcmdOptional bool
+
 	isPrepped bool
 }
 
@@ -578,22 +580,25 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 	}
 
 	if len(rest) < 1 {
+		if c.IsSubcmdOptional {
+			return nil
+		}
 		return ErrNoSubcmd
-	}
-	p.Subcmd = &Command{
-		Inputs: make([]Input, 0, len(rest)),
-		Name:   rest[0],
 	}
 
 	var subcmdInfo *CommandInfo
 	for i := range c.Subcmds {
-		if c.Subcmds[i].Name == p.Subcmd.Name {
+		if c.Subcmds[i].Name == rest[0] {
 			subcmdInfo = &c.Subcmds[i]
 			break
 		}
 	}
 	if subcmdInfo == nil {
-		return UnknownSubcmdError{Name: p.Subcmd.Name}
+		return UnknownSubcmdError{Name: rest[0]}
+	}
+	p.Subcmd = &Command{
+		Inputs: make([]Input, 0, len(rest)),
+		Name:   rest[0],
 	}
 
 	// If we have an error from parsing this command (from above), only return it so long
