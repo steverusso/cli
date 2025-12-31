@@ -379,9 +379,9 @@ func TestParsing(t *testing.T) {
 			cmd: NewCmd("cp").
 				Opt(NewOpt("aa").
 					WithParser(func(s string) (any, error) {
-						comma := strings.IndexByte(s, ',')
-						x, _ := strconv.Atoi(s[:comma])
-						y, _ := strconv.Atoi(s[comma+1:])
+						xStr, yStr, _ := strings.Cut(s, ",")
+						x, _ := strconv.Atoi(xStr)
+						y, _ := strconv.Atoi(yStr)
 						return image.Point{X: x, Y: y}, nil
 					})),
 			variations: []testInputOutput{
