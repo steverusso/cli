@@ -50,7 +50,7 @@ func ExampleInputInfo_ShortOnly() {
 	fmt.Println(err)
 	// Output:
 	// hello
-	// unknown option '--flag'
+	// cli.test: unknown option '--flag'
 }
 
 func ExampleInputInfo_Help() {

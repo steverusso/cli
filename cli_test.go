@@ -26,18 +26,20 @@ func TestParsing(t *testing.T) {
 		variations []testInputOutput
 	}
 
-	for _, tt := range []testCase{
-		{
-			// no positional args or subcommands
-			// errors for missing required opts
-			name: "options_only",
-			cmd: NewCmd("optsonly").
-				Opt(NewBoolOpt("aa")).
-				Opt(NewOpt("bb").ShortOnly('b')).
-				Opt(NewOpt("cc").Required()).
-				Opt(NewOpt("dd").Default("v4")).
-				Opt(NewOpt("ee")),
-			variations: []testInputOutput{
+	for _, tt := range []*testCase{
+		func() *testCase {
+			tc := testCase{
+				// no positional args or subcommands
+				// errors for missing required opts
+				name: "options_only",
+				cmd: NewCmd("optsonly").
+					Opt(NewBoolOpt("aa")).
+					Opt(NewOpt("bb").ShortOnly('b')).
+					Opt(NewOpt("cc").Required()).
+					Opt(NewOpt("dd").Default("v4")).
+					Opt(NewOpt("ee")),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
 					args: []string{"-b", "v2", "--aa", "--cc=v3"},
@@ -56,15 +58,15 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-z"},
-					expErr: UnknownOptionError{Name: "-z"},
+					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-z"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--zz=abc"},
-					expErr: UnknownOptionError{Name: "--zz=abc"},
+					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "--zz=abc"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--bb", "B"},
-					expErr: UnknownOptionError{Name: "--bb"},
+					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "--bb"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--dd"},
@@ -74,8 +76,9 @@ func TestParsing(t *testing.T) {
 					args:   []string{"-b"},
 					expErr: MissingOptionValueError{Name: "b"},
 				},
-			},
-		}, {
+			}
+			return &tc
+		}(), {
 			// all provided parsers with defaults
 			name: "provided_parsers",
 			cmd: NewCmd("pp").
@@ -392,14 +395,16 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		}, {
-			// stacking / bunching short options and their values
-			name: "shortstacks",
-			cmd: NewCmd("shst").
-				Opt(NewBoolOpt("bb").Short('b')).
-				Opt(NewOpt("aa").Short('a')).
-				Opt(NewBoolOpt("cc").Short('c')),
-			variations: []testInputOutput{
+		}, func() *testCase {
+			tc := testCase{
+				// stacking / bunching short options and their values
+				name: "shortstacks",
+				cmd: NewCmd("shst").
+					Opt(NewBoolOpt("bb").Short('b')).
+					Opt(NewOpt("aa").Short('a')).
+					Opt(NewBoolOpt("cc").Short('c')),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
 					args: []string{"-bc"},
@@ -472,7 +477,7 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-bz"},
-					expErr: UnknownOptionError{Name: "-z"},
+					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-z"},
 				}, {
 					Case: ttCase(),
 					args: []string{"-aa", "v"},
@@ -483,8 +488,9 @@ func TestParsing(t *testing.T) {
 						Surplus: []string{"v"},
 					},
 				},
-			},
-		}, {
+			}
+			return &tc
+		}(), {
 			// versioning (on just the top level for now)
 			// using the builder method for a custom versioner
 			name: "versioning",
@@ -531,26 +537,31 @@ func TestParsing(t *testing.T) {
 					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
 				},
 			},
-		}, {
+		}, func() *testCase {
 			// versioning (on just the top level for now)
 			// using the constructor for a version option but leaving out a short name
-			name: "versioning",
-			cmd:  NewCmd("cmd").Opt(NewVersionOpt(0, "version", VersionOptConfig{})),
-			variations: []testInputOutput{
+			tc := testCase{
+				name: "versioning",
+				cmd:  NewCmd("cmd").Opt(NewVersionOpt(0, "version", VersionOptConfig{})),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case:   ttCase(),
 					args:   []string{"--version"},
 					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
 				},
-				{Case: ttCase(), args: []string{"-v"}, expErr: UnknownOptionError{Name: "-v"}},
-				{Case: ttCase(), args: []string{"-V"}, expErr: UnknownOptionError{Name: "-V"}},
-			},
-		}, {
+				{Case: ttCase(), args: []string{"-v"}, expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-v"}},
+				{Case: ttCase(), args: []string{"-V"}, expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-V"}},
+			}
+			return &tc
+		}(), func() *testCase {
 			// versioning (on just the top level for now)
 			// using the constructor for a version option but leaving out a long name
-			name: "versioning",
-			cmd:  NewCmd("cmd").Opt(NewVersionOpt('Z', "", VersionOptConfig{})),
-			variations: []testInputOutput{
+			tc := testCase{
+				name: "versioning",
+				cmd:  NewCmd("cmd").Opt(NewVersionOpt('Z', "", VersionOptConfig{})),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case:   ttCase(),
 					args:   []string{"-Z"},
@@ -558,10 +569,11 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--version"},
-					expErr: UnknownOptionError{Name: "--version"},
+					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "--version"},
 				},
-			},
-		},
+			}
+			return &tc
+		}(),
 	} {
 		for tioIdx, tio := range tt.variations {
 			t.Run(fmt.Sprintf("%s %d", tt.name, tioIdx), func(t *testing.T) {

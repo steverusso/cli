@@ -125,7 +125,7 @@ type InputInfo struct {
 	Versioner Versioner
 }
 
-// ValueParser describes any function that takes a string and returns some type or an
+// ValueParser describes any function that takes a string and returns some value or an
 // error. This is the signature of any input value parser. See [ParseBool], [ParseInt],
 // and the other provided parsers for some examples.
 type ValueParser = func(string) (any, error)
@@ -400,7 +400,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				optName := arg[charIdx]
 				optInfo := lookupOptionByShortName(c, optName)
 				if optInfo == nil {
-					return UnknownOptionError{Name: "-" + string(arg[charIdx])}
+					return UnknownOptionError{Cmd: c, Name: "-" + string(arg[charIdx])}
 				}
 
 				// If this is another bool option, the raw value will be empty. If this is
@@ -482,7 +482,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			}
 		}
 		if optInfo == nil {
-			return UnknownOptionError{Name: args[i]}
+			return UnknownOptionError{Cmd: c, Name: args[i]}
 		}
 
 		var rawValue string
@@ -516,8 +516,6 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		p.Inputs = append(p.Inputs, pi)
 	}
 
-	var errMissingOpts error
-
 	// check that all required options were provided
 	var missing []string
 	for i := range c.Opts {
@@ -533,6 +531,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			}
 		}
 	}
+	var errMissingOpts error
 	if len(missing) > 0 {
 		errMissingOpts = MissingOptionsError{Names: missing}
 
@@ -650,10 +649,13 @@ func (usce UnknownSubcmdError) Error() string {
 	return "unknown subcommand '" + usce.Name + "'"
 }
 
-type UnknownOptionError struct{ Name string }
+type UnknownOptionError struct {
+	Cmd  *CommandInfo
+	Name string
+}
 
 func (uoe UnknownOptionError) Error() string {
-	return "unknown option '" + uoe.Name + "'"
+	return strings.Join(uoe.Cmd.Path, " ") + ": unknown option '" + uoe.Name + "'"
 }
 
 type MissingOptionValueError struct{ Name string }
