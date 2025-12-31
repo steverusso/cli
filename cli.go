@@ -594,7 +594,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		}
 	}
 	if subcmdInfo == nil {
-		return UnknownSubcmdError{Name: rest[0]}
+		return UnknownSubcmdError{Cmd: c, Name: rest[0]}
 	}
 	p.Subcmd = &Command{
 		Inputs: make([]Input, 0, len(rest)),
@@ -648,10 +648,13 @@ func newInput(info *InputInfo, src ParsedFrom, rawValue string) (Input, error) {
 
 var ErrNoSubcmd = errors.New("missing subcommand")
 
-type UnknownSubcmdError struct{ Name string }
+type UnknownSubcmdError struct {
+	Cmd  *CommandInfo
+	Name string
+}
 
 func (usce UnknownSubcmdError) Error() string {
-	return "unknown subcommand '" + usce.Name + "'"
+	return strings.Join(usce.Cmd.Path, " ") + ": unknown subcommand '" + usce.Name + "'"
 }
 
 type UnknownOptionError struct {

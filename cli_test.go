@@ -309,18 +309,21 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		}, {
+		}, func() *testCase {
 			// subcommands (with missing or unknown error checks)
-			name: "subcommands",
-			cmd: NewCmd("cmd").
-				Opt(NewBoolOpt("aa")).
-				Subcmd(NewCmd("one").
-					Opt(NewOpt("bb")).
-					Opt(NewOpt("cc"))).
-				Subcmd(NewCmd("two").
-					Opt(NewOpt("dd")).
-					Opt(NewOpt("ee"))),
-			variations: []testInputOutput{
+			tc := testCase{
+				name: "subcommands",
+				cmd: NewCmd("cmd").
+					Opt(NewBoolOpt("aa")).
+					Subcmd(NewCmd("one").
+						Opt(NewOpt("bb")).
+						Opt(NewOpt("cc"))).
+					Subcmd(NewCmd("two").
+						Opt(NewOpt("dd")).
+						Opt(NewOpt("ee"))).
+					Subcmd(NewCmd("four").Subcmd(NewCmd("five"))),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
 					args: []string{"one", "--bb", "B"},
@@ -346,14 +349,19 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"three", "--dd", "D"},
-					expErr: UnknownSubcmdError{Name: "three"},
+					expErr: UnknownSubcmdError{Cmd: &tc.cmd, Name: "three"},
+				}, {
+					Case:   ttCase(),
+					args:   []string{"four", "six"},
+					expErr: UnknownSubcmdError{Cmd: &tc.cmd.Subcmds[2], Name: "six"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--aa"},
 					expErr: ErrNoSubcmd,
 				},
-			},
-		}, {
+			}
+			return &tc
+		}(), {
 			// subcommand help won't require required values
 			name: "subcommands",
 			cmd: NewCmd("cmd").
@@ -587,7 +595,7 @@ func TestParsing(t *testing.T) {
 				}
 				if gotErr != nil {
 					if tio.expErr == nil {
-						t.Fatalf("expected no error, got %[1]T: %[1]v", gotErr)
+						t.Fatalf("%s: expected no error, got %[1]T: %[1]v", tio.Case, gotErr)
 					}
 					if !errors.Is(gotErr, tio.expErr) {
 						t.Fatalf("%s: errors don't match:\nexpected: (%[2]T) %+#[2]v\n     got: (%[3]T) %+#[3]v",
