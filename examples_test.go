@@ -445,7 +445,7 @@ func ExampleInputInfo_Required_option() {
 	fmt.Println(err)
 	// Output:
 	// hello world
-	// missing the following required options: -b
+	// cli.test: missing the following required options: -b
 }
 
 func ExampleInputInfo_Required_postionalArgument() {
@@ -463,7 +463,7 @@ func ExampleInputInfo_Required_postionalArgument() {
 	fmt.Println(err)
 	// Output:
 	// hello world
-	// missing the following required arguments: a
+	// cli.test: missing the following required arguments: a
 }
 
 func ExampleInputInfo_Short() {

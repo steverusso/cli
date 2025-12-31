@@ -54,27 +54,27 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-b", "v2", "--aa"},
-					expErr: MissingOptionsError{Names: []string{"--cc"}},
+					expErr: MissingOptionsError{CmdInfo: &tc.cmd, Names: []string{"--cc"}},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-z"},
-					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-z"},
+					expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "-z"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--zz=abc"},
-					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "--zz=abc"},
+					expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "--zz=abc"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--bb", "B"},
-					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "--bb"},
+					expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "--bb"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--dd"},
-					expErr: MissingOptionValueError{Name: "dd"},
+					expErr: MissingOptionValueError{CmdInfo: &tc.cmd, Name: "dd"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-b"},
-					expErr: MissingOptionValueError{Name: "b"},
+					expErr: MissingOptionValueError{CmdInfo: &tc.cmd, Name: "b"},
 				},
 			}
 			return &tc
@@ -147,19 +147,21 @@ func TestParsing(t *testing.T) {
 					},
 				},
 			},
-		}, {
+		}, func() *testCase {
 			// positional arg stuff
 			// all required args but not all optional ones
 			// missing required args error
 			// args with default values
 			// surplus
-			name: "posargs",
-			cmd: NewCmd("posargs").
-				Arg(NewArg("arg1").Required()).
-				Arg(NewArg("arg2").Required().Env("ARG2")).
-				Arg(NewArg("arg3")).
-				Arg(NewArg("arg4").Default("Z").Env("ARG4")),
-			variations: []testInputOutput{
+			tc := testCase{
+				name: "posargs",
+				cmd: NewCmd("posargs").
+					Arg(NewArg("arg1").Required()).
+					Arg(NewArg("arg2").Required().Env("ARG2")).
+					Arg(NewArg("arg3")).
+					Arg(NewArg("arg4").Default("Z").Env("ARG4")),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
 					args: []string{"A", "B", "C", "D", "E", "F"},
@@ -209,14 +211,15 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{},
-					expErr: MissingArgsError{Names: []string{"arg1", "arg2"}},
+					expErr: MissingArgsError{CmdInfo: &tc.cmd, Names: []string{"arg1", "arg2"}},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"A"},
-					expErr: MissingArgsError{Names: []string{"arg2"}},
+					expErr: MissingArgsError{CmdInfo: &tc.cmd, Names: []string{"arg2"}},
 				},
-			},
-		}, {
+			}
+			return &tc
+		}(), {
 			// '--' with '--posarg' after it
 			// '=' on an option with and without content
 			// mix of `--opt val`, `--opt=val`, and short names
@@ -349,11 +352,11 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"three", "--dd", "D"},
-					expErr: UnknownSubcmdError{Cmd: &tc.cmd, Name: "three"},
+					expErr: UnknownSubcmdError{CmdInfo: &tc.cmd, Name: "three"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"four", "six"},
-					expErr: UnknownSubcmdError{Cmd: &tc.cmd.Subcmds[2], Name: "six"},
+					expErr: UnknownSubcmdError{CmdInfo: &tc.cmd.Subcmds[2], Name: "six"},
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--aa"},
@@ -361,14 +364,16 @@ func TestParsing(t *testing.T) {
 				},
 			}
 			return &tc
-		}(), {
+		}(), func() *testCase {
 			// subcommand help won't require required values
-			name: "subcommands",
-			cmd: NewCmd("cmd").
-				Opt(NewOpt("aa").Required()).
-				Subcmd(NewCmd("one").
-					Opt(NewOpt("cc").Required())),
-			variations: []testInputOutput{
+			tc := testCase{
+				name: "subcommands",
+				cmd: NewCmd("cmd").
+					Opt(NewOpt("aa").Required()).
+					Subcmd(NewCmd("one").
+						Opt(NewOpt("cc").Required())),
+			}
+			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
 					args: []string{"one", "-h"},
@@ -378,10 +383,11 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--aa=1", "one"},
-					expErr: MissingOptionsError{Names: []string{"--cc"}},
+					expErr: MissingOptionsError{CmdInfo: &tc.cmd.Subcmds[0], Names: []string{"--cc"}},
 				},
-			},
-		}, {
+			}
+			return &tc
+		}(), {
 			// custom parser
 			name: "custom_parser",
 			cmd: NewCmd("cp").
@@ -444,7 +450,7 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-cba"},
-					expErr: MissingOptionValueError{Name: "a"},
+					expErr: MissingOptionValueError{CmdInfo: &tc.cmd, Name: "a"},
 				}, {
 					Case: ttCase(),
 					args: []string{"-cb", "-a", "valA"},
@@ -485,7 +491,7 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"-bz"},
-					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-z"},
+					expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "-z"},
 				}, {
 					Case: ttCase(),
 					args: []string{"-aa", "v"},
@@ -558,8 +564,8 @@ func TestParsing(t *testing.T) {
 					args:   []string{"--version"},
 					expErr: HelpOrVersionRequested{Msg: "(devel)\n"},
 				},
-				{Case: ttCase(), args: []string{"-v"}, expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-v"}},
-				{Case: ttCase(), args: []string{"-V"}, expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "-V"}},
+				{Case: ttCase(), args: []string{"-v"}, expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "-v"}},
+				{Case: ttCase(), args: []string{"-V"}, expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "-V"}},
 			}
 			return &tc
 		}(), func() *testCase {
@@ -577,7 +583,7 @@ func TestParsing(t *testing.T) {
 				}, {
 					Case:   ttCase(),
 					args:   []string{"--version"},
-					expErr: UnknownOptionError{Cmd: &tc.cmd, Name: "--version"},
+					expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "--version"},
 				},
 			}
 			return &tc

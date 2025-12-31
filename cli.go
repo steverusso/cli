@@ -402,7 +402,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 				optName := arg[charIdx]
 				optInfo := lookupOptionByShortName(c, optName)
 				if optInfo == nil {
-					return UnknownOptionError{Cmd: c, Name: "-" + string(arg[charIdx])}
+					return UnknownOptionError{CmdInfo: c, Name: "-" + string(arg[charIdx])}
 				}
 
 				// If this is another bool option, the raw value will be empty. If this is
@@ -418,7 +418,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 						if i < len(args) {
 							rawValue = args[i]
 						} else {
-							return MissingOptionValueError{Name: string(optName)}
+							return MissingOptionValueError{CmdInfo: c, Name: string(optName)}
 						}
 					} else {
 						rawValue = arg[charIdx+1:]
@@ -484,7 +484,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			}
 		}
 		if optInfo == nil {
-			return UnknownOptionError{Cmd: c, Name: args[i]}
+			return UnknownOptionError{CmdInfo: c, Name: args[i]}
 		}
 
 		var rawValue string
@@ -495,7 +495,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 			if i < len(args) {
 				rawValue = args[i]
 			} else {
-				return MissingOptionValueError{Name: name}
+				return MissingOptionValueError{CmdInfo: c, Name: name}
 			}
 		}
 
@@ -535,7 +535,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 	}
 	var errMissingOpts error
 	if len(missing) > 0 {
-		errMissingOpts = MissingOptionsError{Names: missing}
+		errMissingOpts = MissingOptionsError{CmdInfo: c, Names: missing}
 
 		// If we are about to parse positional arguments instead of subcommands,
 		// we can just return this error right now. Otherwise we have to wait
@@ -566,7 +566,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 					}
 				}
 				if len(missing) > 0 {
-					return MissingArgsError{Names: missing}
+					return MissingArgsError{CmdInfo: c, Names: missing}
 				}
 				return nil
 			} else {
@@ -594,7 +594,7 @@ func parse(c *CommandInfo, p *Command, args []string) error {
 		}
 	}
 	if subcmdInfo == nil {
-		return UnknownSubcmdError{Cmd: c, Name: rest[0]}
+		return UnknownSubcmdError{CmdInfo: c, Name: rest[0]}
 	}
 	p.Subcmd = &Command{
 		Inputs: make([]Input, 0, len(rest)),
@@ -649,51 +649,62 @@ func newInput(info *InputInfo, src ParsedFrom, rawValue string) (Input, error) {
 var ErrNoSubcmd = errors.New("missing subcommand")
 
 type UnknownSubcmdError struct {
-	Cmd  *CommandInfo
-	Name string
+	CmdInfo *CommandInfo
+	Name    string
 }
 
 func (usce UnknownSubcmdError) Error() string {
-	return strings.Join(usce.Cmd.Path, " ") + ": unknown subcommand '" + usce.Name + "'"
+	return strings.Join(usce.CmdInfo.Path, " ") + ": unknown subcommand '" + usce.Name + "'"
 }
 
 type UnknownOptionError struct {
-	Cmd  *CommandInfo
-	Name string
+	CmdInfo *CommandInfo
+	Name    string
 }
 
 func (uoe UnknownOptionError) Error() string {
-	return strings.Join(uoe.Cmd.Path, " ") + ": unknown option '" + uoe.Name + "'"
+	return strings.Join(uoe.CmdInfo.Path, " ") + ": unknown option '" + uoe.Name + "'"
 }
 
-type MissingOptionValueError struct{ Name string }
+type MissingOptionValueError struct {
+	CmdInfo *CommandInfo
+	Name    string
+}
 
 func (mov MissingOptionValueError) Error() string {
-	return "option '" + mov.Name + "' requires a value"
+	return strings.Join(mov.CmdInfo.Path, " ") + ": option '" + mov.Name + "' requires a value"
 }
 
-type MissingOptionsError struct{ Names []string }
+type MissingOptionsError struct {
+	CmdInfo *CommandInfo
+	Names   []string
+}
 
 func (moe MissingOptionsError) Error() string {
-	return fmt.Sprintf("missing the following required options: %s", strings.Join(moe.Names, ", "))
+	return fmt.Sprintf("%s: missing the following required options: %s",
+		strings.Join(moe.CmdInfo.Path, " "), strings.Join(moe.Names, ", "))
 }
 
 func (moe MissingOptionsError) Is(err error) bool {
 	if e, ok := err.(MissingOptionsError); ok {
-		return slices.Equal(moe.Names, e.Names)
+		return moe.CmdInfo == e.CmdInfo && slices.Equal(moe.Names, e.Names)
 	}
 	return false
 }
 
-type MissingArgsError struct{ Names []string }
+type MissingArgsError struct {
+	CmdInfo *CommandInfo
+	Names   []string
+}
 
 func (mae MissingArgsError) Error() string {
-	return fmt.Sprintf("missing the following required arguments: %s", strings.Join(mae.Names, ", "))
+	return fmt.Sprintf("%s: missing the following required arguments: %s",
+		strings.Join(mae.CmdInfo.Path, " "), strings.Join(mae.Names, ", "))
 }
 
 func (mae MissingArgsError) Is(err error) bool {
 	if e, ok := err.(MissingArgsError); ok {
-		return slices.Equal(mae.Names, e.Names)
+		return mae.CmdInfo == e.CmdInfo && slices.Equal(mae.Names, e.Names)
 	}
 	return false
 }
