@@ -15,9 +15,9 @@ func DefaultHelpGenerator(src Input, c *CommandInfo) string {
 	return DefaultFullHelp(c)
 }
 
-const (
-	helpMsgTextWidth           = 90
-	helpShortMsgMaxFirstColLen = 24
+var (
+	HelpMsgTextWidth           = 90
+	HelpShortMsgMaxFirstColLen = 24
 )
 
 func DefaultShortHelp(c *CommandInfo) string {
@@ -58,7 +58,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 	// If the name column width would be longer than the (arbitrary) max width, then we'll
 	// output 'non-condensed' lines of option data so it won't all look awkwardly crammed
 	// off to the right.
-	if optNameColWidth > helpShortMsgMaxFirstColLen {
+	if optNameColWidth > HelpShortMsgMaxFirstColLen {
 		for _, o := range opts {
 			desc := o.HelpBlurb
 			if o.IsRequired {
@@ -87,7 +87,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 
 			u.WriteString(content)
 			u.WriteString("\n" + strings.Repeat(" ", 6))
-			u.WriteString(wrapBlurb(desc, 6, helpMsgTextWidth))
+			u.WriteString(wrapBlurb(desc, 6, HelpMsgTextWidth))
 			u.WriteByte('\n')
 		}
 	} else {
@@ -105,7 +105,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 			rightPadding := strings.Repeat(" ", optNameColWidth-len(optLeftPaddedNames[i])+3)
 			paddedNameAndVal := "  " + optLeftPaddedNames[i] + rightPadding
 			u.WriteString(paddedNameAndVal)
-			u.WriteString(wrapBlurb(desc, len(paddedNameAndVal), helpMsgTextWidth))
+			u.WriteString(wrapBlurb(desc, len(paddedNameAndVal), HelpMsgTextWidth))
 			u.WriteByte('\n')
 		}
 	}
@@ -142,15 +142,15 @@ func DefaultShortHelp(c *CommandInfo) string {
 				desc += " [$" + a.EnvVar + "]"
 			}
 
-			if argNameColWidth > helpShortMsgMaxFirstColLen {
+			if argNameColWidth > HelpShortMsgMaxFirstColLen {
 				u.WriteString("  " + argNames[i])
 				u.WriteString("\n" + strings.Repeat(" ", 5))
-				u.WriteString(wrapBlurb(desc, 5, helpMsgTextWidth))
+				u.WriteString(wrapBlurb(desc, 5, HelpMsgTextWidth))
 			} else {
 				rightPadding := strings.Repeat(" ", argNameColWidth-len(argNames[i])+3)
 				paddedNameCol := "  " + argNames[i] + rightPadding
 				u.WriteString(paddedNameCol)
-				u.WriteString(wrapBlurb(desc, len(paddedNameCol), helpMsgTextWidth))
+				u.WriteString(wrapBlurb(desc, len(paddedNameCol), HelpMsgTextWidth))
 			}
 			u.WriteByte('\n')
 		}
@@ -169,7 +169,7 @@ func DefaultShortHelp(c *CommandInfo) string {
 			rightPadding := strings.Repeat(" ", maxCmdNameLen-len(c.Subcmds[i].Name)+3)
 			paddedNameCol := "   " + c.Subcmds[i].Name + rightPadding
 			u.WriteString(paddedNameCol)
-			u.WriteString(wrapBlurb(c.Subcmds[i].HelpBlurb, len(paddedNameCol), helpMsgTextWidth) + "\n")
+			u.WriteString(wrapBlurb(c.Subcmds[i].HelpBlurb, len(paddedNameCol), HelpMsgTextWidth) + "\n")
 		}
 	}
 
@@ -184,7 +184,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 
 	if c.HelpExtra != "" {
 		u.WriteString("\n\noverview:\n")
-		u.WriteString("  " + wrapBlurb(c.HelpExtra, 2, helpMsgTextWidth))
+		u.WriteString("  " + wrapBlurb(c.HelpExtra, 2, HelpMsgTextWidth))
 	}
 
 	helpWriteUsageLines(&u, c)
@@ -232,7 +232,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 			content += "   (required)"
 		}
 		if o.HelpBlurb != "" {
-			content += "\n      " + wrapBlurb(o.HelpBlurb, 6, helpMsgTextWidth)
+			content += "\n      " + wrapBlurb(o.HelpBlurb, 6, HelpMsgTextWidth)
 		}
 		if extra != "" {
 			content += "\n" + extra
@@ -271,7 +271,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 				content += "   (required)"
 			}
 			content += "\n"
-			content += "      " + wrapBlurb(a.HelpBlurb, 6, helpMsgTextWidth)
+			content += "      " + wrapBlurb(a.HelpBlurb, 6, HelpMsgTextWidth)
 			if extra != "" {
 				content += "\n" + extra
 			}
@@ -296,8 +296,8 @@ func DefaultFullHelp(c *CommandInfo) string {
 			}
 		}
 
-		doNonCondensed := maxCmdNameLen > helpShortMsgMaxFirstColLen ||
-			maxCmdBlurbLen > (helpMsgTextWidth-maxCmdNameLen-6)
+		doNonCondensed := maxCmdNameLen > HelpShortMsgMaxFirstColLen ||
+			maxCmdBlurbLen > (HelpMsgTextWidth-maxCmdNameLen-6)
 
 		u.WriteString("\ncommands:\n")
 		for i := range c.Subcmds {
@@ -305,7 +305,7 @@ func DefaultFullHelp(c *CommandInfo) string {
 				u.WriteString("   ")
 				u.WriteString(c.Subcmds[i].Name)
 				u.WriteString("\n      ")
-				u.WriteString(wrapBlurb(c.Subcmds[i].HelpBlurb, 6, helpMsgTextWidth))
+				u.WriteString(wrapBlurb(c.Subcmds[i].HelpBlurb, 6, HelpMsgTextWidth))
 				u.WriteByte('\n')
 				if i < len(c.Subcmds)-1 {
 					u.WriteByte('\n')
