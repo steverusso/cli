@@ -93,6 +93,17 @@ import (
 	"strings"
 )
 
+// A CommandInfo holds information about the schema of a CLI command. This includes usage
+// information that can form a help message, as well as which options and arguments or
+// subcommands it should expect when parsing. This is data that must be known when parsing
+// in order to properly parse command line arguments. For example, consider the following
+// argument list: {"-a", "b"}. Is "-a" a boolean option and "b" an argument to the
+// command? Or is "b" the option value being provided to the non-boolean option "-a"? The
+// only way for the parser to know is to follow an outline that states which one it is.
+//
+// The methods on CommandInfo are available to guide library consumers through creating
+// this command schema. Once built, a CommandInfo would typically be used by calling
+// [CommandInfo.ParseOrExit] or [CommandInfo.Parse].
 type CommandInfo struct {
 	Name      string
 	Path      []string
@@ -253,14 +264,16 @@ func Fatal(code int, v any) {
 	os.Exit(code)
 }
 
-// ParseOrExit will parse input based on this CommandInfo. If help was requested, it
-// will print the help message and exit the program successfully (status code 0). If
-// there is any other error, it will print the error and exit the program with failure
-// (status code 1). The input parameter semantics are the same as [CommandInfo.Parse].
+// ParseOrExit calls [CommandInfo.ParseTheseOrExit] using os.Args as the command
+// line arguments. See that method's documentation for more info.
 func (in CommandInfo) ParseOrExit() *Command {
 	return in.ParseTheseOrExit(os.Args[1:]...)
 }
 
+// ParseTheseOrExit parses input against this CommandInfo using args as the command line
+// arguments. If there is a [HelpOrVersionRequested] error, it will print the message and
+// exit with status code 0. If there was any other error, it will print the error's
+// message to Stderr and exit with status code 1.
 func (in CommandInfo) ParseTheseOrExit(args ...string) *Command {
 	c, err := in.ParseThese(args...)
 	if err != nil {
@@ -274,12 +287,18 @@ func (in CommandInfo) ParseTheseOrExit(args ...string) *Command {
 	return c
 }
 
-// ParseOrExit will parse input based on this CommandInfo. If no function arguments
-// are provided, the [os.Args] will be used.
+// Parse calls [CommandInfo.ParseThese] using os.Args as the command
+// line arguments. See that method's documentation for more info.
 func (in *CommandInfo) Parse() (*Command, error) {
 	return in.ParseThese(os.Args[1:]...)
 }
 
+// ParseThese prepares and validates this CommandInfo if it hasn't been already. This
+// involves setting the Path field of this command and all subcommands, as well as
+// ensuring there are no logical errors in the structure of this command (such as a
+// command containing duplicate option names). This method will panic if there are any
+// structural errors in this CommandInfo. Assuming a clean structure, this method then
+// parses input against this CommandInfo using args as the command line arguments.
 func (in *CommandInfo) ParseThese(args ...string) (*Command, error) {
 	if !in.isPrepped {
 		in.prepareAndValidate()
@@ -292,6 +311,8 @@ func (in *CommandInfo) ParseThese(args ...string) (*Command, error) {
 	return c, err
 }
 
+// HelpOrVersionRequested is returned by the parsing code
+// to signal that a help or version option was encountered.
 type HelpOrVersionRequested struct {
 	Msg string
 }
