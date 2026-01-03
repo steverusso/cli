@@ -494,6 +494,27 @@ func ExampleInputInfo_ShortOnly() {
 	// cli.test: unknown option '--flag'
 }
 
+func ExampleInputInfo_WithHelpGen() {
+	in := cli.New("example").
+		Help("an example program").
+		Opt(cli.NewOpt("a")).
+		Opt(cli.NewOpt("b")).
+		Opt(cli.NewBoolOpt("h").
+			Help("will show a custom help message").
+			WithHelpGen(func(o cli.Input, c *cli.CommandInfo) string {
+				return "totally custom help message\n" +
+					"use data on the provided CommandInfo to form a custom help message\n" +
+					fmt.Sprintf("for example, this command has %d options including this one", len(c.Opts))
+			}))
+
+	_, err := in.ParseThese("-h")
+	fmt.Println(err)
+	// Output:
+	// totally custom help message
+	// use data on the provided CommandInfo to form a custom help message
+	// for example, this command has 3 options including this one
+}
+
 func ExampleInputInfo_WithParser() {
 	// This is a horrible parsing function for coordinates.
 	// It's just for example purposes.

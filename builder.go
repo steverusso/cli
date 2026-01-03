@@ -329,6 +329,8 @@ func (in InputInfo) Default(v string) InputInfo {
 	return in
 }
 
+// WithHelpGen sets the HelpGen field of this input. See the HelpGen field
+// documentation on [InputInfo] to learn more about how it is used.
 func (in InputInfo) WithHelpGen(hg HelpGenerator) InputInfo {
 	in.HelpGen = hg
 	return in

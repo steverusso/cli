@@ -134,6 +134,12 @@ type InputInfo struct {
 	ValueName   string
 	ValueParser ValueParser
 
+	// If an input is encountered during parsing that has either HelpGen or Versioner
+	// set, the parser will return HelpOrVersionRequested with whatever either of those
+	// functions return as the Msg. See CommandInfo.ParseThese to learn more.
+	//
+	// Note: adding an input that has HelpGen set to a CommandInfo will prevent this
+	// library from automatically adding the DefaultHelpInput to that command.
 	HelpGen   HelpGenerator
 	Versioner Versioner
 }
@@ -297,8 +303,11 @@ func (in *CommandInfo) Parse() (*Command, error) {
 // involves setting the Path field of this command and all subcommands, as well as
 // ensuring there are no logical errors in the structure of this command (such as a
 // command containing duplicate option names). This method will panic if there are any
-// structural errors in this CommandInfo. Assuming a clean structure, this method then
-// parses input against this CommandInfo using args as the command line arguments.
+// schema errors in this CommandInfo.
+//
+// Assuming a clean schema, this method then parses input against this CommandInfo using
+// args as the command line arguments. If there is a help or version input found on any
+// command level, this function will return a [HelpOrVersionRequested] error.
 func (in *CommandInfo) ParseThese(args ...string) (*Command, error) {
 	if !in.isPrepped {
 		in.prepareAndValidate()
