@@ -114,6 +114,11 @@ type CommandInfo struct {
 	Args      []InputInfo
 	Subcmds   []CommandInfo
 
+	// By default, when parsing command line arguments against a CommandInfo that has
+	// subcommands defined, an error will be returned if there is no subcommand provided.
+	// However, with this field set to true, there will not be a parsing error if a
+	// subcommand argument is completely absent, and the parsed subcommand field Subcmd on
+	// Command will be nil.
 	IsSubcmdOptional bool
 
 	isPrepped bool

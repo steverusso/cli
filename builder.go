@@ -148,11 +148,8 @@ func (c CommandInfo) Usage(lines ...string) CommandInfo {
 	return c
 }
 
-// SubcmdOptional marks this CommandInfo as not requiring one of its subcommands to be
-// provided. By default, when parsing against a CommandInfo that has subcommands, an error
-// will be returned if there is no subcommand provided. However, calling this method will
-// change it so there will not be a parsing error if a subcommand argument is absent, and
-// the parsed subcommand field Subcmd on [Command] will be nil.
+// SubcmdOptional sets the IsSubcmdOptional field of this CommandInfo to true.
+// See that field's documentation to learn more about how it is used.
 func (c CommandInfo) SubcmdOptional() CommandInfo {
 	c.IsSubcmdOptional = true
 	return c
