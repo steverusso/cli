@@ -376,7 +376,11 @@ func helpWriteUsageLines(u *strings.Builder, c *CommandInfo) {
 		case len(c.Args) > 0:
 			u.WriteString(" [arguments]")
 		case len(c.Subcmds) > 0:
-			u.WriteString(" <command>")
+			if c.IsSubcmdOptional {
+				u.WriteString(" [command]")
+			} else {
+				u.WriteString(" <command>")
+			}
 		}
 		u.WriteByte('\n')
 	} else {

@@ -251,6 +251,38 @@ arguments:
       veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
       consequat.
 `,
+		}, {
+			Case: ttCase(),
+			cmdInfo: New().
+				Help("test example").
+				Subcmd(NewCmd("lorem").Help("ipsum dolor sit amet, consectetur adipiscing.")).
+				Subcmd(NewCmd("enim-ad").Help("veniam, quis nostrud exercitation ullamco.")).
+				SubcmdOptional(),
+			expectedShort: `cli.test - test example
+
+usage:
+  cli.test [options] [command]
+
+options:
+  -h, --help   Show this help message and exit.
+
+commands:
+   lorem     ipsum dolor sit amet, consectetur adipiscing.
+   enim-ad   veniam, quis nostrud exercitation ullamco.
+`,
+			expectedFull: `cli.test - test example
+
+usage:
+  cli.test [options] [command]
+
+options:
+  -h, --help
+      Show this help message and exit.
+
+commands:
+   lorem     ipsum dolor sit amet, consectetur adipiscing.
+   enim-ad   veniam, quis nostrud exercitation ullamco.
+`,
 		},
 	} {
 		// Due to the current design, we have to call this in order to get the default
