@@ -418,14 +418,20 @@ func TestParsing(t *testing.T) {
 				cmd: NewCmd("cmd").
 					Opt(NewOpt("aa").Required()).
 					Subcmd(NewCmd("one").
-						Opt(NewOpt("cc").Required())),
+						Opt(NewBoolOpt("cc").Short('c').Required())),
 			}
 			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
 					args: []string{"one", "-h"},
 					expErr: HelpOrVersionRequested{
-						Msg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n      --cc  <arg>   (required)\n  -h, --help        Show this help message and exit.\n",
+						Msg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n  -c, --cc     (required)\n  -h, --help   Show this help message and exit.\n",
+					},
+				}, {
+					Case: ttCase(),
+					args: []string{"one", "-ch"},
+					expErr: HelpOrVersionRequested{
+						Msg: "cmd one\n\nusage:\n  one [options]\n\noptions:\n  -c, --cc     (required)\n  -h, --help   Show this help message and exit.\n",
 					},
 				}, {
 					Case:   ttCase(),
