@@ -32,12 +32,12 @@ func New(name ...string) CommandInfo {
 	if len(name) > 0 {
 		cmdName = name[0]
 	} else {
-		info, ok := debug.ReadBuildInfo()
+		bi, ok := debug.ReadBuildInfo()
 		if !ok {
 			panic("failed to read build info")
 		}
-		lastSlash := strings.LastIndexByte(info.Path, '/')
-		cmdName = info.Path[lastSlash+1:]
+		lastSlash := strings.LastIndexByte(bi.Path, '/')
+		cmdName = bi.Path[lastSlash+1:]
 	}
 
 	return NewCmd(cmdName)

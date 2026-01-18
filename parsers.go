@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"fmt"
+	"errors"
 	"net/url"
 	"os"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 func ParseBool(s string) (any, error) {
 	b, err := strconv.ParseBool(s)
 	if err != nil {
-		return false, fmt.Errorf(`invalid boolean value "%s"`, s)
+		return false, errors.New("invalid boolean value")
 	}
 	return b, nil
 }
