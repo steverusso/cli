@@ -4,6 +4,7 @@ import (
 	"runtime/debug"
 	"slices"
 	"strings"
+	"unicode"
 )
 
 var DefaultHelpInput = NewBoolOpt("help").
@@ -109,18 +110,17 @@ func (c *CommandInfo) prepareAndValidate() {
 	}
 }
 
+// NewCmd returns a new CommandInfo with the Name field set to name and Path field set to
+// a single element slice of name. This function will panic if name is empty or contains
+// whitespace.
 func NewCmd(name string) CommandInfo {
 	// assert command name isn't empty and doesn't contain any whitespace
 	if name == "" {
 		panic(errEmptyCmdName)
 	}
-	for i := range name {
-		switch name[i] {
-		case ' ', '\t', '\n', '\r':
-			panic("invalid command name '" + name + "': cannot contain whitespace")
-		}
+	if strings.ContainsFunc(name, unicode.IsSpace) {
+		panic("invalid command name '" + name + "': cannot contain whitespace")
 	}
-
 	return CommandInfo{
 		Name: name,
 		Path: []string{name},
@@ -128,6 +128,7 @@ func NewCmd(name string) CommandInfo {
 	}
 }
 
+// Help sets the HelpBlurb field of this command to blurb.
 func (c CommandInfo) Help(blurb string) CommandInfo {
 	c.HelpBlurb = blurb
 	return c
