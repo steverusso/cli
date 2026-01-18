@@ -929,6 +929,37 @@ func TestOptLookups(t *testing.T) {
 			}()
 		}
 	}
+
+	// with a bunch of option 'a' provided
+	{
+		c := in.ParseTheseOrExit("-a1", "-a2", "-a3")
+		// use the iterator to break on "2" which should put
+		// i at index 2 because option a has a default
+		{
+			var i int
+			for v := range GetAllSeq[string](c, "a") {
+				if v == "2" {
+					break
+				}
+				i++
+			}
+			if i != 2 {
+				t.Fatalf(`expected to break on "2" and be at index because of default`)
+			}
+		}
+		// trying to cast the first one to anything but a string should panic
+		{
+			func() {
+				defer func() {
+					gotPanicVal := recover()
+					if gotPanicVal == nil {
+						t.Fatalf("didn't panic when trying to cast a string arg to an int")
+					}
+				}()
+				_ = Get[int](c, "a")
+			}()
+		}
+	}
 }
 
 func TestArgLookups(t *testing.T) {
