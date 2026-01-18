@@ -214,7 +214,7 @@ commands:
 					Env("LOREM").
 					Help("ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.")).
 				Arg(NewArg("enim-ad-minim").
-					Help("veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.")),
+					Help("veniam, quis nostrud exercitation ullamco laboris\nnisi ut aliquip ex ea commodo consequat.")),
 			expectedShort: `cli.test - test example
 
 usage:
@@ -227,8 +227,8 @@ arguments:
   [lorem]           ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
                     tempor incididunt ut labore et dolore magna aliqua. (default:
                     pariatur) [$LOREM]
-  [enim-ad-minim]   veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-                    ea commodo consequat.
+  [enim-ad-minim]   veniam, quis nostrud exercitation ullamco laboris
+                    nisi ut aliquip ex ea commodo consequat.
 `,
 			expectedFull: `cli.test - test example
 
@@ -248,8 +248,8 @@ arguments:
       [env: LOREM]
 
   [enim-ad-minim]
-      veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-      consequat.
+      veniam, quis nostrud exercitation ullamco laboris
+      nisi ut aliquip ex ea commodo consequat.
 `,
 		}, {
 			Case: ttCase(),
