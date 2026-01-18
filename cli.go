@@ -204,10 +204,16 @@ func Lookup[T any](c *Command, id string) (T, bool) {
 	return zero, false
 }
 
-// Get gets the parsed input value with the given id in the given Command and converts
-// the value to the given type T through an untested type assertion. This function will
-// panic if the value isn't found or if the value can't be converted to type T.
-// To check whether the value is found instead of panicking, see [Lookup].
+// Get gets the parsed input value with the given id in the given Command and converts the
+// value to the given type T through an untested type assertion. This function will panic
+// if the value isn't found or if the value can't be converted to type T. Therefore, this
+// function would typically only be used to retrieve parsed values for inputs that are
+// required with (which means there will be a parsing error first if there is no value
+// present) or that have a default value specified (which means there will always be at
+// least one parsed value no matter what). In those cases, this function will be
+// completely safe to use.
+//
+// To check whether the value is found without panicking if it isn't, see [Lookup].
 func Get[T any](c *Command, id string) T {
 	if v, ok := Lookup[T](c, id); ok {
 		return v
