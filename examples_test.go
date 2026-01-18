@@ -355,10 +355,8 @@ func ExampleGetOrFunc() {
 		Opt(cli.NewOpt("b")).
 		ParseTheseOrExit("-a", "hello")
 
-	a := cli.GetOr(c, "a", "")
-	b := cli.GetOrFunc(c, "b", func() string {
-		return "world"
-	})
+	a := cli.GetOrFunc(c, "a", func() string { return "bye" })
+	b := cli.GetOrFunc(c, "b", func() string { return "world" })
 
 	fmt.Printf("a: %q\n", a)
 	fmt.Printf("b: %q\n", b)

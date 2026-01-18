@@ -14,11 +14,12 @@ import (
 
 func TestParsing(t *testing.T) {
 	type testInputOutput struct {
-		Case     string
-		envs     map[string]string
-		args     []string
-		expected Command
-		expErr   error
+		Case      string
+		envs      map[string]string
+		args      []string
+		expected  Command
+		expErr    error
+		expErrMsg string
 	}
 	type testCase struct {
 		name       string
@@ -28,9 +29,9 @@ func TestParsing(t *testing.T) {
 
 	for _, tt := range []*testCase{
 		func() *testCase {
+			// no positional args or subcommands
+			// errors for missing required opts
 			tc := testCase{
-				// no positional args or subcommands
-				// errors for missing required opts
 				name: "options_only",
 				cmd: NewCmd("optsonly").
 					Opt(NewBoolOpt("aa")).
@@ -72,13 +73,51 @@ func TestParsing(t *testing.T) {
 					args:   []string{"--dd"},
 					expErr: MissingOptionValueError{CmdInfo: &tc.cmd, Name: "dd"},
 				}, {
-					Case:   ttCase(),
-					args:   []string{"-b"},
-					expErr: MissingOptionValueError{CmdInfo: &tc.cmd, Name: "b"},
+					Case:      ttCase(),
+					args:      []string{"-b"},
+					expErrMsg: `optsonly: option 'b' requires a value`,
 				},
 			}
 			return &tc
 		}(), {
+			// default option value that can't parse
+			name: "default_opt_error",
+			cmd:  New().Opt(NewBoolOpt("bool").Default("non-truthy")),
+			variations: []testInputOutput{{
+				Case:      ttCase(), // no input, just relying on the default values
+				args:      []string{},
+				expErrMsg: `parsing default value 'non-truthy' for option 'bool': invalid boolean value`,
+			}},
+		}, {
+			// default positional arg that can't parse
+			name: "default_posarg_error",
+			cmd:  New().Arg(NewArg("uint").WithParser(ParseUint).Default("non-uinty")),
+			variations: []testInputOutput{{
+				Case:      ttCase(), // no input, just relying on the default values
+				args:      []string{},
+				expErrMsg: `parsing default value 'non-uinty' for arg 'uint': invalid syntax`,
+			}},
+		}, {
+			// env option value that can't parse
+			name: "env_opt_error",
+			cmd:  New().Opt(NewFloat32Opt("f32").Env("F32")),
+			variations: []testInputOutput{{
+				Case:      ttCase(), // no input, just relying on the default values
+				envs:      map[string]string{"F32": "not-f32"},
+				args:      []string{},
+				expErrMsg: `using env var 'F32': invalid syntax`,
+			}},
+		}, {
+			// env positional arg that can't parse
+			name: "env_posarg_error",
+			cmd:  New().Arg(NewArg("64").WithParser(ParseFloat64).Env("F64")),
+			variations: []testInputOutput{{
+				Case:      ttCase(), // no input, just relying on the default values
+				envs:      map[string]string{"F64": "not-f64"},
+				args:      []string{},
+				expErrMsg: `using env var 'F64': invalid syntax`,
+			}},
+		}, {
 			// all provided parsers with defaults
 			name: "provided_parsers",
 			cmd: NewCmd("pp").
@@ -158,19 +197,19 @@ func TestParsing(t *testing.T) {
 				cmd: NewCmd("posargs").
 					Arg(NewArg("arg1").Required()).
 					Arg(NewArg("arg2").Required().Env("ARG2")).
-					Arg(NewArg("arg3")).
+					Arg(NewArg("arg3").WithParser(ParseInt)).
 					Arg(NewArg("arg4").Default("Z").Env("ARG4")),
 			}
 			tc.variations = []testInputOutput{
 				{
 					Case: ttCase(),
-					args: []string{"A", "B", "C", "D", "E", "F"},
+					args: []string{"A", "B", "3", "D", "E", "F"},
 					expected: Command{
 						Inputs: []Input{
 							{ID: "arg4", From: ParsedFrom{Default: true}, RawValue: "Z", Value: "Z"},
 							{ID: "arg1", From: ParsedFrom{Arg: 1}, RawValue: "A", Value: "A"},
 							{ID: "arg2", From: ParsedFrom{Arg: 2}, RawValue: "B", Value: "B"},
-							{ID: "arg3", From: ParsedFrom{Arg: 3}, RawValue: "C", Value: "C"},
+							{ID: "arg3", From: ParsedFrom{Arg: 3}, RawValue: "3", Value: 3},
 							{ID: "arg4", From: ParsedFrom{Arg: 4}, RawValue: "D", Value: "D"},
 						},
 						Surplus: []string{"E", "F"},
@@ -216,6 +255,14 @@ func TestParsing(t *testing.T) {
 					Case:   ttCase(),
 					args:   []string{"A"},
 					expErr: MissingArgsError{CmdInfo: &tc.cmd, Names: []string{"arg2"}},
+				}, {
+					Case:      ttCase(), // no input, just relying on the default values
+					args:      []string{"A", "B", "C"},
+					expErrMsg: `parsing positional argument #3 'C': invalid syntax`,
+				}, {
+					Case:      ttCase(), // no input, just relying on the default values
+					args:      []string{"A", "B", "C", "D"},
+					expErrMsg: `parsing positional argument #3 'C': invalid syntax`,
 				},
 			}
 			return &tc
@@ -410,13 +457,14 @@ func TestParsing(t *testing.T) {
 				},
 			},
 		}, func() *testCase {
+			// stacking / bunching short options and their values
 			tc := testCase{
-				// stacking / bunching short options and their values
 				name: "shortstacks",
 				cmd: NewCmd("shst").
 					Opt(NewBoolOpt("bb").Short('b')).
 					Opt(NewOpt("aa").Short('a')).
-					Opt(NewBoolOpt("cc").Short('c')),
+					Opt(NewBoolOpt("cc").Short('c')).
+					Opt(NewIntOpt("dd").Short('d')),
 			}
 			tc.variations = []testInputOutput{
 				{
@@ -492,6 +540,18 @@ func TestParsing(t *testing.T) {
 					Case:   ttCase(),
 					args:   []string{"-bz"},
 					expErr: UnknownOptionError{CmdInfo: &tc.cmd, Name: "-z"},
+				}, {
+					Case: ttCase(),
+					args: []string{"-d3"},
+					expected: Command{
+						Inputs: []Input{
+							{ID: "dd", From: ParsedFrom{Opt: "d"}, RawValue: "3", Value: 3},
+						},
+					},
+				}, {
+					Case:      ttCase(),
+					args:      []string{"-dC"},
+					expErrMsg: "parsing option 'd': invalid syntax",
 				}, {
 					Case: ttCase(),
 					args: []string{"-aa", "v"},
@@ -596,18 +656,26 @@ func TestParsing(t *testing.T) {
 				}
 
 				got, gotErr := tt.cmd.ParseThese(tio.args...)
-				if tio.expErr != nil && gotErr == nil {
-					t.Fatalf("expected error %[1]T: %[1]v, got no error", tio.expErr)
-				}
 				if gotErr != nil {
-					if tio.expErr == nil {
+					if tio.expErr != nil {
+						if !errors.Is(gotErr, tio.expErr) {
+							t.Fatalf("%s: errors don't match:\nexpected: (%[2]T) %+#[2]v\n     got: (%[3]T) %+#[3]v",
+								tio.Case, tio.expErr, gotErr)
+						}
+					} else if tio.expErrMsg != "" {
+						gotErrMsg := gotErr.Error()
+						if gotErrMsg != tio.expErrMsg {
+							t.Fatalf("%s: error messages don't match:\nexpected: %q\n     got: %q",
+								tio.Case, tio.expErrMsg, gotErrMsg)
+						}
+					} else {
 						t.Fatalf("%s: expected no error, got %[1]T: %[1]v", tio.Case, gotErr)
 					}
-					if !errors.Is(gotErr, tio.expErr) {
-						t.Fatalf("%s: errors don't match:\nexpected: (%[2]T) %+#[2]v\n     got: (%[3]T) %+#[3]v",
-							tio.Case, tio.expErr, gotErr)
-					}
 					return
+				} else if tio.expErr != nil {
+					t.Fatalf("expected error %[1]T: %[1]v, got no error", tio.expErr)
+				} else if tio.expErrMsg != "" {
+					t.Fatalf("expected error message %q, got no error", tio.expErrMsg)
 				}
 
 				cmpParsed(t, tio.Case, &tio.expected, got)
@@ -978,6 +1046,7 @@ options:
 				Help("nested three levels").
 				Subcmd(NewCmd("a").
 					Subcmd(NewCmd("b").
+						Opt(NewOpt("bo").Required()).
 						Subcmd(NewCmd("c").
 							Help("subcommand c")))),
 			cliArgs: []string{"a", "b", "c", "-h"},
@@ -989,6 +1058,17 @@ usage:
 options:
   -h, --help   Show this help message and exit.
 `,
+		}, {
+			Case: ttCase(),
+			cmd: NewCmd("example").
+				Help("nested three levels leaving out required option").
+				Subcmd(NewCmd("a").
+					Subcmd(NewCmd("b").
+						Opt(NewOpt("bo").Required()).
+						Subcmd(NewCmd("c").
+							Help("subcommand c")))),
+			cliArgs:    []string{"a", "b", "c"},
+			expHelpMsg: `example a b: missing the following required options: --bo`,
 		},
 	} {
 		_, err := tt.cmd.ParseThese(tt.cliArgs...)
